@@ -28,7 +28,9 @@ def get_access_token():
         'username': API_USERNAME,
         'password': API_PASSWORD
     })
-    response.raise_for_status()
+    if response.status_code != 200:
+        logging.error(f'Failed to get access token: {response.status_code} {response.text}')
+        response.raise_for_status()
     return response.json()['access']
 
 
@@ -58,6 +60,10 @@ async def card(ctx, *, name: str):
     }
     response = requests.get(API_URL, headers=headers, params=params)
 
+    logging.info(f'API request: {response.url}')
+    logging.info(f'API response status: {response.status_code}')
+    logging.info(f'API response content: {response.content}')
+    
     if response.status_code == 401:
         access_token = get_access_token()
         headers['Authorization'] = f'Bearer {access_token}'
