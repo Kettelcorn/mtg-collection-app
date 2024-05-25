@@ -33,7 +33,9 @@ def get_access_token():
 
 
 # Retrieve the initial access token
-access_token = get_access_token()
+def get_access_token():
+    return get_access_token()
+
 
 # Define intents
 intents = discord.Intents.default()
@@ -52,9 +54,8 @@ async def on_ready():
 # Command: !card <name>
 @bot.command(name='card')
 async def card(ctx, *, name: str):
-    global access_token
     headers = {
-        'Authorization': f'Bearer {access_token}'
+        'Authorization': f'Bearer {get_access_token()}'
     }
     params = {
         'name': name
@@ -62,8 +63,7 @@ async def card(ctx, *, name: str):
     response = requests.get(API_URL, headers=headers, params=params)
 
     if response.status_code == 401:
-        access_token = get_access_token()
-        headers['Authorization'] = f'Bearer {access_token}'
+        headers['Authorization'] = f'Bearer {get_access_token()}'
         response = requests.get(API_URL, headers=headers, params=params)
 
     if response.status_code == 200:
