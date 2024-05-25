@@ -28,8 +28,6 @@ def get_access_token():
         'username': API_USERNAME,
         'password': API_PASSWORD
     }, headers={'Content-Type': 'application/json'})
-    if response.status_code != 200:
-        logging.error(f'Failed to get access token: {response.status_code} {response.text}')
     response.raise_for_status()
     return response.json()['access']
 
