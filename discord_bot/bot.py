@@ -35,9 +35,9 @@ BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 # Retrieve the initial access token
 # access_token = get_access_token()
 #
-# # Define intents
-# intents = discord.Intents.default()
-# intents.message_content = True
+# Define intents
+intents = discord.Intents.default()
+intents.message_content = True
 
 # Create the bot instance
 bot = commands.Bot(command_prefix='!') #, intents=intents)
