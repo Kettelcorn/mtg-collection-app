@@ -40,7 +40,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 # Create the bot instance
-bot = commands.Bot(command_prefix='!') #, intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 # Event listener for when the bot is ready
