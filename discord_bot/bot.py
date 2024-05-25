@@ -63,7 +63,7 @@ async def card(ctx, *, name: str):
     logging.info(f'API request: {response.url}')
     logging.info(f'API response status: {response.status_code}')
     logging.info(f'API response content: {response.content}')
-    
+
     if response.status_code == 401:
         access_token = get_access_token()
         headers['Authorization'] = f'Bearer {access_token}'
