@@ -3,6 +3,9 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Load the environment variables
 load_dotenv()
@@ -13,6 +16,10 @@ API_USERNAME = os.getenv('API_USERNAME')
 API_PASSWORD = os.getenv('API_PASSWORD')
 API_URL = os.getenv('API_URL')
 API_TOKEN_URL = os.getenv('API_TOKEN_URL')
+
+if not all([BOT_TOKEN, API_USERNAME, API_PASSWORD, API_URL, API_TOKEN_URL]):
+    logging.error('One or more environment variables are missing.')
+    exit(1)
 
 
 # Function to retrieve access token
@@ -78,4 +85,8 @@ async def hello(ctx):
 
 
 # Run the bot
-bot.run(BOT_TOKEN)
+try:
+    bot.run(BOT_TOKEN)
+except discord.errors.LoginFailure as e:
+    logging.error(f'Failed to log in: {e}')
+    exit(1)
