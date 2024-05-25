@@ -1,2 +1,1 @@
-web: gunicorn tcg_project.wsgi
-worker: python bot/bot.py
+web: python manage.py runserver 0.0.0.0:8000 & python manage.py run_bot
