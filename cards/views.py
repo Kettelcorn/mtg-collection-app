@@ -1,29 +1,22 @@
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
+from django.views import View
 from .models import Card
-from .serializers import CardSerializer
 
 
-class CardViewSet(viewsets.ModelViewSet):
-    queryset = Card.objects.all()
-    serializer_class = CardSerializer
-    permission_classes = [IsAuthenticated]
-
-    @action(detail=False, methods=['get'], url_path='search')
-    def search(self, request):
-        name = request.query_params.get('name', None)
-
-        if name is not None:
-            cards = Card.objects.filter(name__icontains=name)
-            serializer = self.get_serializer(cards, many=True)
-            return Response(serializer.data)
+class CardNameView(View):
+    def get(self, request, *args, **kwargs):
+        card_name = request.GET.get('name')
+        if card_name:
+            try:
+                card = Card.objects.get(name=card_name)
+                data = {
+                    'name': card.name,
+                    'stats': card.stats,
+                    'description': card.description,
+                    'price': card.price,
+                }
+                return JsonResponse(data)
+            except Card.DoesNotExist:
+                return JsonResponse({'error': 'Card not found'}, status=404)
         else:
-            return Response({"detail": "Name query parameter is required."}, status=400)
-
-    def list(self, request, *args, **kwargs):
-        print("Request Headers:", request.headers)
-        print("User:", request.user)
-        print("Is Authenticated:", request.user.is_authenticated)
-        return super().list(request, *args, **kwargs)
+            return JsonResponse({'error': 'No card name provided'}, status=400)
