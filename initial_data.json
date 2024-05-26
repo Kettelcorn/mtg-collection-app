@@ -1,0 +1,1 @@
+[{"model": "cards.card", "pk": 1, "fields": {"name": "Example Card", "stats": "pretty fucking strong", "description": "holy shit this card is good", "price": "10000000.00"}}, {"model": "cards.card", "pk": 2, "fields": {"name": "Stupid Card", "stats": "pretty damn stupid", "description": "hur dur mur burr", "price": "-1.00"}}]
