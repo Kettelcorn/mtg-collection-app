@@ -30,7 +30,7 @@ class CardNameView(APIView):
 class UpdateCardsView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            logger.inf('Updating cards...')
+            logger.info('Updating cards...')
             call_command('update_cards')
             return Response({'detail': 'Cards updated successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
