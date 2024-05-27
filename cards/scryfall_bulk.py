@@ -2,6 +2,8 @@ import requests
 import json
 from .models import Card
 import logging
+from django.db import transaction
+
 
 
 SCRYFALL_BULK_DATA_URL = 'https://api.scryfall.com/bulk-data'
@@ -48,13 +50,16 @@ def process_bulk_data(json_data):
     logging.info(f'Processing {len(cards)} cards')
     count = 0
     new_cards = []
+    update_cards = []
 
-    existing_cards = set(Card.objects.values_list('name', flat=True))
+    existing_cards = {card.name: card for card in Card.objects.all()}
+    new_card_names = set()
 
     for card in cards:
         count += 1
-        logging.info(f'Processing card: {count}')
+        card_name = card['name']
         card_data = {
+            'name': card_name,
             'description': card.get('oracle_text', ''),
             'power': card.get('power', ''),
             'toughness': card.get('toughness', ''),
@@ -65,12 +70,43 @@ def process_bulk_data(json_data):
             'price': card['prices'].get('usd', 0.0) if card['prices'].get('usd') else 0.0
         }
 
-        if card['name'] in existing_cards:
-            Card.objects.filter(name=card['name']).update(**card_data)
+        if card_name in existing_cards:
+            existing_card = existing_cards[card_name]
+            needs_update = False
+
+            for key, value in card_data.items():
+                existing_value = getattr(existing_card, key)
+                if str(existing_value) != str(value):
+                    setattr(existing_card, key, value)
+                    needs_update = True
+            if needs_update:
+                update_cards.append(existing_card)
+                logging.info(f'Updating card to list: {count}')
+        elif card_name not in new_card_names:
+            new_cards.append(Card(**card_data))
+            new_card_names.add(card_name)
+            logging.info(f'Adding card to list: {count}')
         else:
-            new_cards.append(Card(name=card['name'], **card_data))
+            logging.info(f'Skipping duplicate card: {count}')
+
+    if update_cards:
+        with transaction.atomic():
+            for card in update_cards:
+                card.save(
+                    update_fields=[
+                        'description', 'power', 'toughness', 'colors', 'rarity', 'set_name', 'image_url', 'price'
+                    ]
+                )
+            logging.info(f'Updated {len(update_cards)} cards')
 
     if new_cards:
+        logging.info(f'Checking {len(new_cards)} new cards')
+        for card in new_cards:
+            if card.name in existing_cards:
+                logging.warning(f'Card already exists: {card.name}')
+                new_cards.remove(card)
+            else:
+                logging.warning(f'Card does not exist: {card.name}')
         Card.objects.bulk_create(new_cards)
         logging.info(f'Created {len(new_cards)} new cards')
 
