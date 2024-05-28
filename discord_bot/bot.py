@@ -1,7 +1,7 @@
 import discord
 import subprocess
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
 import requests
@@ -32,6 +32,15 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
+
+@tasks.loop(seconds=10)  # Change the interval to 30 seconds
+async def keep_alive():
+    try:
+        # Perform an internal operation to keep the bot's connection alive
+        await bot.ws.ping()
+        print("Sent keep-alive ping")
+    except Exception as e:
+        print(f"Error sending keep-alive ping: {e}")
 
 # Command: !card <name>
 @bot.command(name='card')
