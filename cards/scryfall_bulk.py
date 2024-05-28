@@ -8,7 +8,7 @@ from django.db import transaction
 
 
 SCRYFALL_BULK_DATA_URL = 'https://api.scryfall.com/bulk-data'
-CHUNK_SIZE = 10 * 1024 * 1024
+CHUNK_SIZE = 5 * 1024 * 1024
 DELAY_BETWEEN_REQUESTS = 1
 
 
