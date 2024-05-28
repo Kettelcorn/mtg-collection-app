@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 import requests
 import logging
-import threading
+import asyncio
 
 # logging.basicConfig(level=logging.INFO)
 
@@ -75,20 +75,49 @@ async def card(ctx, *, name: str):
         await ctx.send('Failed to retrieve card.')
 
 
+def download_and_process_cards():
+    try:
+        download_uri = requests.get(UPDATE_URL).json().get('download_uri')
+        if not download_uri:
+            logging.error('Failed to get download URI')
+            return
+        response = requests.get(download_uri)
+        if response.status_code == 200:
+            cards = response.json()
+            logging.info(f'Parsed JSON response: {cards}')
+            if cards:
+                for card in cards:
+                    logging.info(f'Processing card: {card}')
+                    # Process the card data
+                    pass
+            else:
+                logging.error('No cards found in response')
+        else:
+            logging.error(f'Failed to download cards: {response.status_code}')
+    except Exception as e:
+        logging.error(f'Error downloading and processing cards: {e}')
+
+
+def download_and_process_cards():
+    response = requests.post(UPDATE_URL)
+    if response.status_code == 200:
+        return "Cards updated successfully."
+    else:
+        return f"Failed to update cards. Status code: {response.status_code}"
+
+
 # Command: !update_cards
 @bot.command(name='update_cards')
 async def update_cards(ctx):
     await ctx.defer()
-    try:
-        await ctx.send("Updating your cards... :hourglass:")
-        response = requests.post(UPDATE_URL)
-        if response.status_code == 200:
-            await ctx.send("Cards updated successfully.")
-        else:
-            await ctx.send(f"Failed to update cards. Status code: {response.status_code}")
-    except Exception as e:
-        logging.error(f"Error updating cards: {e}")
-        await ctx.send(f"Error updating cards: {e}")
+    await ctx.send("Updating your cards... :hourglass:")
+
+    async def run_update():
+        result_message = await asyncio.to_thread(download_and_process_cards)
+        await ctx.send(result_message)
+
+    asyncio.create_task(run_update())
+
 
 
 # Command: !count_cards
