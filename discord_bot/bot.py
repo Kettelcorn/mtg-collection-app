@@ -71,12 +71,12 @@ async def card(ctx, *, name: str):
 async def update_cards(ctx):
     await ctx.defer()
     try:
-        message = await ctx.send("Updating your cards... :hourglass:")
+        await ctx.send("Updating your cards... :hourglass:")
         response = requests.post(UPDATE_URL)
         if response.status_code == 200:
-            await message.edit(content="Cards updated successfully.")
+            await ctx.send("Cards updated successfully.")
         else:
-            await message.edit(content=f"Failed to update cards. Status code: {response.status_code}")
+            await ctx.send(f"Failed to update cards. Status code: {response.status_code}")
     except Exception as e:
         logging.error(f"Error updating cards: {e}")
         await ctx.send(f"Error updating cards: {e}")
