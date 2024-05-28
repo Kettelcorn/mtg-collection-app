@@ -2,12 +2,14 @@ import requests
 import json
 from .models import Card
 import logging
+import time
 from django.db import transaction
 
 
 
 SCRYFALL_BULK_DATA_URL = 'https://api.scryfall.com/bulk-data'
-BATCH_SIZE = 1000
+CHUNK_SIZE = 20 * 1024 * 1024
+DELAY_BETWEEN_REQUESTS = 0.5
 
 
 def fetch_bulk_data_list():
@@ -24,44 +26,35 @@ def get_bulk_data_download_uri(data_type="default_cards"):
     if bulk_data_list:
         for bulk_data in bulk_data_list['data']:
             if bulk_data['type'] == data_type:
-                return bulk_data['download_uri']
+                return bulk_data['download_uri'], bulk_data['size']
     logging.error(f'No download URI found for data type: {data_type}')
-    return None
+    return None, None
 
 
-def download_and_process_bulk_data(download_uri):
-    try:
-        with requests.get(download_uri, stream=True) as response:
-            response.raise_for_status()
-            buffer = []
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    buffer.append(chunk)
-            process_bulk_data(buffer)
-    except requests.RequestException as e:
-        logging.error(f'Failed to download bulk data: {e}')
-    # response = requests.get(download_uri)
-    # if response.status_code == 200:
-    #     logging.info(f'Content-Type: {response.headers.get("Content-Type")}')
-    #     logging.info(f'First 100 bytes of response: {response.content[:100]}')
-    #     try:
-    #         return json.loads(response.content)
-    #     except json.JSONDecodeError as e:
-    #         logging.error(f'Failed to parse JSON: {e}')
-    #         return None
-    # else:
-    #     logging.error(f'Failed to download bulk data: {response.status_code}')
-    #     return None
-
-
-def process_bulk_data(chunks):
-    try:
-        data = b''.join(chunks).decode('utf-8')
+def download_bulk_data(download_uri, total_size):
+    start = 0
+    data_bytes = bytearray()
+    while start < total_size:
+        end = min(start + CHUNK_SIZE - 1, total_size - 1)
+        headers = {'Range': f'bytes={start}-{end}'}
         try:
-            json_data = json.loads(data)
-        except json.JSONDecodeError as e:
-            logging.error(f'Failed to parse JSON: {e}')
+            response = requests.get(download_uri, headers=headers)
+            response.raise_for_status()
+            data_bytes.extend(response.content)
+            percent_complete = (end + 1) / total_size * 100
+            logging.info(f'Downloaded {percent_complete:.2f}% of the bulk data')
+        except requests.RequestException as e:
+            logging.error(f'Failed to download bulk data: {e}')
             return
+        start += CHUNK_SIZE
+        time.sleep(DELAY_BETWEEN_REQUESTS)
+    return bytes(data_bytes)
+
+
+def process_bulk_data(data_bytes):
+    try:
+        data = data_bytes.decode('utf-8')
+        json_data = json.loads(data)
         cards = json_data
         logging.info(f'Processing {len(cards)} cards')
         count = 0

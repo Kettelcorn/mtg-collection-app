@@ -1,5 +1,6 @@
 import discord
 import subprocess
+from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
@@ -48,17 +49,15 @@ async def card(ctx, *, name: str):
                 await ctx.send('No card found.')
             else:
                 for card in cards:
-                    await ctx.send(
-                         f"**Name:** {card.get('name')}\n"
-                        f"**Description:** {card.get('description')}\n"
-                        f"**Power:** {card.get('power')}\n"
-                        f"**Toughness:** {card.get('toughness')}\n"
-                        f"**Colors:** {card.get('colors')}\n"
-                        f"**Rarity:** {card.get('rarity')}\n"
-                        f"**Set Name:** {card.get('set_name')}\n"
-                        f"**Price:** ${card.get('price')}\n"
-                        f"**Image:** {card.get('image_url')}"
-                    )
+                    embed = discord.Embed(title=card.get('name'), description=card.get('description'))
+                    embed.add_field(name="Power", value=card.get('power'), inline=True)
+                    embed.add_field(name="Toughness", value=card.get('toughness'), inline=True)
+                    embed.add_field(name="Colors", value=card.get('colors'), inline=True)
+                    embed.add_field(name="Rarity", value=card.get('rarity'), inline=True)
+                    embed.add_field(name="Set Name", value=card.get('set_name'), inline=True)
+                    embed.add_field(name="Price", value=f"${card.get('price')}", inline=True)
+                    embed.set_image(url=card.get('image_url'))
+                    await ctx.send(embed=embed)
         except ValueError:
             logging.error('Failed to parse JSON response')
             await ctx.send('Failed to parse response from server.')
@@ -70,13 +69,14 @@ async def card(ctx, *, name: str):
 # Command: !update_cards
 @bot.command(name='update_cards')
 async def update_cards(ctx):
-    await ctx.send("Updating cards...")
+    await ctx.defer()
     try:
+        message = await ctx.send("Updating your cards... :hourglass:")
         response = requests.post(UPDATE_URL)
         if response.status_code == 200:
-            await ctx.send("Cards updated successfully.")
+            await message.edit(content="Cards updated successfully.")
         else:
-            await ctx.send(f"Failed to update cards. Status code: {response.status_code}")
+            await message.edit(content=f"Failed to update cards. Status code: {response.status_code}")
     except Exception as e:
         logging.error(f"Error updating cards: {e}")
         await ctx.send(f"Error updating cards: {e}")
