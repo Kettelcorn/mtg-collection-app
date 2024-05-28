@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from cards.scryfall_bulk import get_bulk_data_download_uri, download_bulk_data, process_bulk_data
+from cards.scryfall_bulk import get_bulk_data_download_uri, download_and_process_bulk_data, process_bulk_data
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -16,13 +16,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR('Failed to get download URI'))
             return
 
-        bulk_data = download_bulk_data(download_uri)
-        logging.info(f'First 100 bytes of bulk data: {bulk_data[:100]}')
-        if not bulk_data:
-            logging.error('Failed to download bulk data')
-            self.stdout.write(self.style.ERROR('Failed to download bulk data'))
-            return
-
-        process_bulk_data(bulk_data)
+        download_and_process_bulk_data(download_uri)
         logging.info('Successfully updated cards')
         self.stdout.write(self.style.SUCCESS('Successfully updated cards'))
