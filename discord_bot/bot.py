@@ -7,8 +7,10 @@ import os
 import requests
 import logging
 import asyncio
+from cards.scryfall_bulk import fetch_bulk_data_list, get_bulk_data_download_uri, download_bulk_data, process_bulk_data
 
-# logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(level=logging.INFO)
 
 # Load the environment variables
 load_dotenv()
@@ -75,37 +77,6 @@ async def card(ctx, *, name: str):
         await ctx.send('Failed to retrieve card.')
 
 
-def download_and_process_cards():
-    try:
-        download_uri = requests.get(UPDATE_URL).json().get('download_uri')
-        if not download_uri:
-            logging.error('Failed to get download URI')
-            return
-        response = requests.get(download_uri)
-        if response.status_code == 200:
-            cards = response.json()
-            logging.info(f'Parsed JSON response: {cards}')
-            if cards:
-                for card in cards:
-                    logging.info(f'Processing card: {card}')
-                    # Process the card data
-                    pass
-            else:
-                logging.error('No cards found in response')
-        else:
-            logging.error(f'Failed to download cards: {response.status_code}')
-    except Exception as e:
-        logging.error(f'Error downloading and processing cards: {e}')
-
-
-def download_and_process_cards():
-    response = requests.post(UPDATE_URL)
-    if response.status_code == 200:
-        return "Cards updated successfully."
-    else:
-        return f"Failed to update cards. Status code: {response.status_code}"
-
-
 # Command: !update_cards
 @bot.command(name='update_cards')
 async def update_cards(ctx):
@@ -113,10 +84,23 @@ async def update_cards(ctx):
     await ctx.send("Updating your cards... :hourglass:")
 
     async def run_update():
-        result_message = await asyncio.to_thread(download_and_process_cards)
-        await ctx.send(result_message)
+        try:
+            bulk_data_list = fetch_bulk_data_list()
+            download_uri, total_size = get_bulk_data_download_uri(bulk_data_list)
+            if not download_uri:
+                logging.error('Failed to get download URI')
+                await ctx.send('Failed to get download URI')
+                return
+            downloaded_data = await download_bulk_data(download_uri, total_size)
+            if downloaded_data:
+                await ctx.send("Cards updated successfully.")
+            else:
+                await ctx.send("Failed to update cards. Download aborted.")
+        except Exception as e:
+            logging.error(f'Error during update: {e}')
+            await ctx.send(f'Failed to update cards: {e}')
 
-    asyncio.create_task(run_update())
+    await asyncio.create_task(run_update())
 
 
 
