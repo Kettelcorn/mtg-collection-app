@@ -5,13 +5,11 @@ import logging
 import time
 from django.db import transaction
 
-
-
 SCRYFALL_BULK_DATA_URL = 'https://api.scryfall.com/bulk-data'
-CHUNK_SIZE = 10 * 1024 * 1024
-DELAY_BETWEEN_REQUESTS = 6
+CHUNK_SIZE = 20 * 1024 * 1024
+DELAY_BETWEEN_REQUESTS = 10
 
-
+# Get the bulk data list from Scryfall
 def fetch_bulk_data_list():
     response = requests.get(SCRYFALL_BULK_DATA_URL)
     if response.status_code == 200:
@@ -21,6 +19,7 @@ def fetch_bulk_data_list():
         return None
 
 
+# Get the download URI for the bulk data
 def get_bulk_data_download_uri(data_type="default_cards"):
     bulk_data_list = fetch_bulk_data_list()
     if bulk_data_list:
@@ -30,7 +29,7 @@ def get_bulk_data_download_uri(data_type="default_cards"):
     logging.error(f'No download URI found for data type: {data_type}')
     return None, None
 
-
+# Download the bulk data in chunks
 def download_bulk_data(download_uri, total_size):
     start = 0
     data_bytes = bytearray()
@@ -50,7 +49,7 @@ def download_bulk_data(download_uri, total_size):
         time.sleep(DELAY_BETWEEN_REQUESTS)
     return bytes(data_bytes)
 
-
+# Process the bulk data
 def process_bulk_data(data_bytes):
     try:
         data = data_bytes.decode('utf-8')
