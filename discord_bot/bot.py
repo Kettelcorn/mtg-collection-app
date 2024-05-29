@@ -42,9 +42,9 @@ async def keep_alive():
     try:
         await bot.http.get_gateway()
         result = subprocess.run(['python', 'manage.py', 'keep_alive'], capture_output=True, text=True)
-        print("Sent keep-alive request")
+        logging.info("Sent keep-alive request")
     except Exception as e:
-        print(f"Error sending keep-alive request: {e}")
+        logging.error(f'Error sending keep-alive request: {e}')
 
 
 
