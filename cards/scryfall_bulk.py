@@ -50,6 +50,11 @@ def download_bulk_data(download_uri, total_size):
                     wait_time = min(INITIAL_BACKOFF * (2 ** attempts) + random.uniform(0,1), MAX_BACKOFF)
                     logging.warning(f"Rate limit exceeded. Retrying in {wait_time:.2f} seconds...")
                     time.sleep(wait_time)
+                elif response.status_code == 502:  # Bad Gateway
+                    attempts += 1
+                    wait_time = min(INITIAL_BACKOFF * (2 ** attempts) + random.uniform(0, 1), MAX_BACKOFF)
+                    logging.warning(f"Bad gateway. Retrying in {wait_time:.2f} seconds...")
+                    time.sleep(wait_time)
                 else:
                     response.raise_for_status()
                     data_bytes.extend(response.content)
