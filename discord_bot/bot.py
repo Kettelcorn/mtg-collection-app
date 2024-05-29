@@ -34,6 +34,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     await bot.tree.sync()
     print(f'{bot.user} has connected to Discord!')
+    keep_alive.start()
 
 
 @tasks.loop(seconds=10)
@@ -194,5 +195,3 @@ async def hello(interaction: discord.Interaction):
 # Run the bot
 def run_bot():
     bot.run(BOT_TOKEN)
-
-result = subprocess.run(['python', 'manage.py', 'count_cards'], capture_output=True, text=True)
