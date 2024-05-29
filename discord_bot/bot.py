@@ -76,30 +76,29 @@ async def card(ctx, *, name: str):
         logging.error(f'Failed to retrieve card: {response.status_code}')
         await ctx.send('Failed to retrieve card.')
 
+async def run_update(ctx):
+    try:
+        download_uri, total_size = get_bulk_data_download_uri(data_type="default_cards")
+        if not download_uri:
+            logging.error('Failed to get download URI')
+            await ctx.send('Failed to get download URI')
+            return
+
+        downloaded_data = await download_bulk_data(download_uri, total_size)
+        if downloaded_data:
+            await ctx.send("Cards updated successfully.")
+        else:
+            await ctx.send("Failed to update cards. Download aborted.")
+    except Exception as e:
+        logging.error(f'Error during update: {e}')
+        await ctx.send(f'Failed to update cards: {e}')
 
 # Command: !update_cards
 @bot.command(name='update_cards')
 async def update_cards(ctx):
     await ctx.defer()
     await ctx.send("Updating your cards... :hourglass:")
-
-    async def run_update():
-        try:
-            download_uri, total_size = get_bulk_data_download_uri("default_cards")
-            if not download_uri:
-                logging.error('Failed to get download URI')
-                await ctx.send('Failed to get download URI')
-                return
-            downloaded_data = await download_bulk_data(download_uri, total_size)
-            if downloaded_data:
-                await ctx.send("Cards updated successfully.")
-            else:
-                await ctx.send("Failed to update cards. Download aborted.")
-        except Exception as e:
-            logging.error(f'Error during update: {e}')
-            await ctx.send(f'Failed to update cards: {e}')
-
-    await asyncio.create_task(run_update())
+    asyncio.create_task(run_update(ctx))
 
 
 
