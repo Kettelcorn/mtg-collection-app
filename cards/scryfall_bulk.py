@@ -14,6 +14,7 @@ INITIAL_BACKOFF = 1.0
 MAX_BACKOFF = 60.0
 MAX_RETRIES = 5
 
+
 # Get the bulk data list from Scryfall
 def fetch_bulk_data_list():
     response = requests.get(SCRYFALL_BULK_DATA_URL)

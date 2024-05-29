@@ -85,8 +85,7 @@ async def update_cards(ctx):
 
     async def run_update():
         try:
-            bulk_data_list = fetch_bulk_data_list()
-            download_uri, total_size = get_bulk_data_download_uri(bulk_data_list)
+            download_uri, total_size = get_bulk_data_download_uri("default_cards")
             if not download_uri:
                 logging.error('Failed to get download URI')
                 await ctx.send('Failed to get download URI')
