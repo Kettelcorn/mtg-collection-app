@@ -47,7 +47,6 @@ async def keep_alive():
         logging.error(f'Error sending keep-alive request: {e}')
 
 
-
 # Command: !card <name>
 @bot.tree.command(name='card', description='Get information about a Magic: The Gathering card')
 async def card(interaction: discord.Interaction, name: str):
@@ -66,10 +65,13 @@ async def card(interaction: discord.Interaction, name: str):
                 response = requests.get(card.get('prints_search_uri'))
                 if response.status_code == 200:
                     set_list = response.json().get('data')
-                    set_options = [discord.SelectOption(
-                        label=f"{set_card.get('set_name')} - {set_card.get('collector_number')} - {'foil' if 'foil' in set_card.get('finishes') else 'nonfoil'}",
-                        value=set_card.get('id'))
-                                   for set_card in set_list]
+                    set_options = []
+                    for set_card in set_list:
+                        finishes = set_card.get('finishes', [])
+                        for finish in finishes:
+                            label = f"{set_card.get('set_name')} - {set_card.get('collector_number')} - {finish}"
+                            value = f"{set_card.get('id')}-{finish}"
+                            set_options.append(discord.SelectOption(label=label, value=value))
 
                     def create_select_options(start_index):
                         select_list = []
@@ -94,9 +96,10 @@ async def card(interaction: discord.Interaction, name: str):
                                     await interaction.response.send_message("No more options available.")
                                     return
                                 select_card = None
-                                for set_card in set_list:
-                                    if set_card.get('id') == next_selected_value:
-                                        select_card = set_card
+                                select_finish = next_selected_value.split('-')[-1]
+                                for each_card in set_list:
+                                    if f"{each_card.get('id')}-{select_finish}" == next_selected_value:
+                                        select_card = each_card
                                         break
                                 embed = discord.Embed(title=select_card.get('name'),
                                                       description=select_card.get('oracle_text'))
@@ -106,7 +109,9 @@ async def card(interaction: discord.Interaction, name: str):
                                 embed.add_field(name="Rarity", value=select_card.get('rarity'), inline=True)
                                 embed.add_field(name="Set Name", value=select_card.get('set_name'), inline=True)
                                 embed.add_field(name="Released At", value=select_card.get('released_at'), inline=True)
-                                embed.add_field(name="Price (USD)", value=f"${select_card.get('prices').get('usd')}",
+                                price = 'usd_foil' if select_finish == 'foil' else 'usd'
+                                embed.add_field(name="Price (USD)",
+                                                value=f"${select_card.get('prices').get(price)}",
                                                 inline=True)
                                 embed.set_image(url=select_card.get('image_uris').get('normal'))
                                 await interaction.response.send_message(embed=embed)
@@ -116,9 +121,11 @@ async def card(interaction: discord.Interaction, name: str):
                             next_view.add_item(next_select)
                             await interaction.response.send_message("Choose a printing:", view=next_view, ephemeral=True)
                         else:
-                            for set_card in set_list:
-                                if set_card.get('id') == selected_value:
-                                    selected_card = set_card
+                            selected_card = None
+                            selected_finish = selected_value.split('-')[-1]
+                            for single_card in set_list:
+                                if f"{single_card.get('id')}-{selected_finish}" == selected_value:
+                                    selected_card = single_card
                                     break
                             embed = discord.Embed(title=selected_card.get('name'),
                                                   description=selected_card.get('oracle_text'))
@@ -128,7 +135,9 @@ async def card(interaction: discord.Interaction, name: str):
                             embed.add_field(name="Rarity", value=selected_card.get('rarity'), inline=True)
                             embed.add_field(name="Set Name", value=selected_card.get('set_name'), inline=True)
                             embed.add_field(name="Released At", value=selected_card.get('released_at'), inline=True)
-                            embed.add_field(name="Price (USD)", value=f"${selected_card.get('prices').get('usd')}",
+                            price_key = 'usd_foil' if selected_finish == 'foil' else 'usd'
+                            embed.add_field(name="Price (USD)",
+                                            value=f"${selected_card.get('prices').get(price_key)}",
                                             inline=True)
                             embed.set_image(url=selected_card.get('image_uris').get('normal'))
                             await interaction.response.send_message(embed=embed)
