@@ -9,7 +9,7 @@ from django.db import transaction
 
 SCRYFALL_BULK_DATA_URL = 'https://api.scryfall.com/bulk-data'
 CHUNK_SIZE = 20 * 1024 * 1024
-DELAY_BETWEEN_REQUESTS = 10
+DELAY_BETWEEN_REQUESTS = 4
 INITIAL_BACKOFF = 1.0
 MAX_BACKOFF = 60.0
 MAX_RETRIES = 5
@@ -45,7 +45,7 @@ def download_bulk_data(download_uri, total_size):
         attempts = 0
         while attempts < MAX_RETRIES:
             try:
-                response = requests.get(download_uri, headers=headers)
+                response = requests.get(download_uri, headers=headers, timeout=30)
                 if response.status_code == 429:
                     attempts += 1
                     wait_time = min(INITIAL_BACKOFF * (2 ** attempts) + random.uniform(0,1), MAX_BACKOFF)
