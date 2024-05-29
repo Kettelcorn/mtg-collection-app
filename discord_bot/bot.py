@@ -49,7 +49,7 @@ async def keep_alive():
 
 # Command: !card <name>
 @bot.tree.command(name='card', description='Get information about a Magic: The Gathering card')
-async def card(interaction: discord.Interaction, name: str):
+async def card(card_interaction: discord.Interaction, name: str):
     params = {
         'fuzzy': name
     }
@@ -58,20 +58,17 @@ async def card(interaction: discord.Interaction, name: str):
     if response.status_code == 200:
         try:
             card = response.json()
-            logging.info(f'Parsed JSON response: {card}')
             if card.get('object') == 'error':
-                await interaction.response.send_message("No card found.")
+                await card_interaction.response.send_message("No card found.")
             else:
                 response = requests.get(card.get('prints_search_uri'))
                 if response.status_code == 200:
                     set_list = response.json().get('data')
                     set_options = []
                     for set_card in set_list:
-                        finishes = set_card.get('finishes', [])
-                        for finish in finishes:
-                            label = f"{set_card.get('set_name')} - {set_card.get('collector_number')} - {finish}"
-                            value = f"{set_card.get('id')}-{finish}"
-                            set_options.append(discord.SelectOption(label=label, value=value))
+                        label = f"{set_card.get('set_name')} - {set_card.get('collector_number')}"
+                        value = f"{set_card.get('id')}"
+                        set_options.append(discord.SelectOption(label=label, value=value))
 
                     def create_select_options(start_index):
                         select_list = []
@@ -82,117 +79,84 @@ async def card(interaction: discord.Interaction, name: str):
                                 return select_list
                             elif i == len(set_options) - 1:
                                 return select_list
-                    select = discord.ui.Select(placeholder="Choose a printing", options=create_select_options(0))
 
-                    async def select_callback(interaction: discord.Interaction):
-                        selected_value = interaction.data.get('values')[0]
-                        if selected_value == "more":
-                            next_options = create_select_options(24)
-                            next_select = discord.ui.Select(placeholder="Choose a printing", options=next_options)
+                    async def display_options(interaction, start_index):
+                        select = discord.ui.Select(placeholder="Choose a printing", options=create_select_options(start_index))
 
-                            async def next_select_callback(interaction):
-                                next_selected_value = interaction.data.get('values')[0]
-                                if next_selected_value == "more":
-                                    await interaction.response.send_message("No more options available.")
-                                    return
-                                select_card = None
-                                select_finish = next_selected_value.split('-')[-1]
-                                for each_card in set_list:
-                                    if f"{each_card.get('id')}-{select_finish}" == next_selected_value:
-                                        select_card = each_card
-                                        break
-                                embed = discord.Embed(title=select_card.get('name'),
-                                                      description=select_card.get('oracle_text'))
-                                embed.add_field(name="Mana Cost", value=select_card.get('mana_cost'), inline=True)
-                                embed.add_field(name="CMC", value=select_card.get('cmc'), inline=True)
-                                embed.add_field(name="Type", value=select_card.get('type_line'), inline=True)
-                                embed.add_field(name="Rarity", value=select_card.get('rarity'), inline=True)
-                                embed.add_field(name="Set Name", value=select_card.get('set_name'), inline=True)
-                                embed.add_field(name="Released At", value=select_card.get('released_at'), inline=True)
-                                price = 'usd_foil' if select_finish == 'foil' else 'usd'
-                                embed.add_field(name="Price (USD)",
-                                                value=f"${select_card.get('prices').get(price)}",
-                                                inline=True)
-                                embed.set_image(url=select_card.get('image_uris').get('normal'))
-                                await interaction.response.send_message(embed=embed)
+                        async def select_callback(set_interaction: discord.Interaction):
+                            selected_value = set_interaction.data.get('values')[0]
+                            if selected_value == "more":
+                                await display_options(set_interaction, start_index + 24)
+                            else:
+                                selected_card = None
+                                for select_card in set_list:
+                                    if f"{select_card.get('id')}" == selected_value:
+                                        selected_card = select_card
+                                        finished = []
+                                        for finish in selected_card.get('finishes'):
+                                            finished.append(discord.SelectOption(label=f"{finish.capitalize()}",
+                                                                                 value=f"{finish}"))
 
-                            next_select.callback = next_select_callback
-                            next_view = discord.ui.View()
-                            next_view.add_item(next_select)
-                            await interaction.response.send_message("Choose a printing:", view=next_view, ephemeral=True)
-                        else:
-                            selected_card = None
-                            selected_finish = selected_value.split('-')[-1]
-                            for single_card in set_list:
-                                if f"{single_card.get('id')}-{selected_finish}" == selected_value:
-                                    selected_card = single_card
-                                    break
-                            embed = discord.Embed(title=selected_card.get('name'),
-                                                  description=selected_card.get('oracle_text'))
-                            embed.add_field(name="Mana Cost", value=selected_card.get('mana_cost'), inline=True)
-                            embed.add_field(name="CMC", value=selected_card.get('cmc'), inline=True)
-                            embed.add_field(name="Type", value=selected_card.get('type_line'), inline=True)
-                            embed.add_field(name="Rarity", value=selected_card.get('rarity'), inline=True)
-                            embed.add_field(name="Set Name", value=selected_card.get('set_name'), inline=True)
-                            embed.add_field(name="Released At", value=selected_card.get('released_at'), inline=True)
-                            price_key = 'usd_foil' if selected_finish == 'foil' else 'usd'
-                            embed.add_field(name="Price (USD)",
-                                            value=f"${selected_card.get('prices').get(price_key)}",
-                                            inline=True)
-                            embed.set_image(url=selected_card.get('image_uris').get('normal'))
-                            await interaction.response.send_message(embed=embed)
+                                        finish_select = discord.ui.Select(placeholder="Choose a finish",
+                                                                          options=finished)
 
-                    select.callback = select_callback
-                    view = discord.ui.View()
-                    view.add_item(select)
-                    await interaction.response.send_message("Choose a printing:", view=view, ephemeral=True)
+                                        async def create_embed(finish_interaction, chosen_card, chosen_finish):
+                                            chosen_finish = finish_interaction.data.get('values')[0]
+                                            embed = discord.Embed(title=chosen_card.get('name'),
+                                                                  description=chosen_card.get('oracle_text'))
+                                            embed.add_field(name="Mana Cost",
+                                                            value=chosen_card.get('mana_cost'), inline=True)
+                                            embed.add_field(name="CMC",
+                                                            value=chosen_card.get('cmc'), inline=True)
+                                            embed.add_field(name="Type",
+                                                            value=chosen_card.get('type_line'), inline=True)
+                                            embed.add_field(name="Rarity",
+                                                            value=chosen_card.get('rarity'), inline=True)
+                                            embed.add_field(name="Set Name",
+                                                            value=chosen_card.get('set_name'), inline=True)
+                                            embed.add_field(name="Released At",
+                                                            value=chosen_card.get('released_at'), inline=True)
+                                            price_key = 'usd_foil' if chosen_finish == 'foil' else 'usd'
+                                            embed.add_field(name="Price (USD)",
+                                                            value=f"${chosen_card.get('prices').get(price_key)}",
+                                                            inline=True)
+                                            embed.set_image(url=chosen_card.get('image_uris').get('normal'))
+                                            await finish_interaction.response.send_message(embed=embed)
+
+                                        async def select_finish(finish_interaction):
+                                            selected_finish = None
+                                            chosen_finish = finish_interaction.data.get('values')[0]
+                                            for each_finish in selected_card.get('finishes'):
+                                                if f"{each_finish}" == chosen_finish:
+                                                    selected_finish = each_finish
+                                                    logging.info(f"Selected finish: {selected_finish}")
+                                                    break
+                                            if selected_finish:
+                                                logging.info(f"Creating embed for finish: {selected_finish}")
+                                                await create_embed(finish_interaction, selected_card, selected_finish)
+                                            else:
+                                                logging.error(f"Failed to select finish: {chosen_finish}")
+                                                await finish_interaction.response.send_message("Failed to select finish.")
+
+                                        finish_select.callback = select_finish
+                                        finish_view = discord.ui.View()
+                                        finish_view.add_item(finish_select)
+                                        await set_interaction.response.send_message("Choose a finish:",
+                                                                                    view=finish_view,
+                                                                                    ephemeral=True)
+
+                        select.callback = select_callback
+                        view = discord.ui.View()
+                        view.add_item(select)
+                        await interaction.response.send_message("Choose a printing:", view=view, ephemeral=True)
+
+                    await display_options(card_interaction, 0)
         except ValueError:
             logging.error('Failed to parse JSON response')
-            await interaction.response.send_message('Failed to parse response from server.')
+            await card_interaction.response.send_message('Failed to parse response from server.')
     else:
         logging.error(f'Failed to retrieve card: {response.status_code}')
-        await interaction.response.send_message('Failed to retrieve card.')
-
-
-async def run_update(ctx):
-    try:
-        # Run synchronous code in a separate thread
-        download_uri, total_size = await asyncio.to_thread(get_bulk_data_download_uri, "default_cards")
-        if not download_uri:
-            logging.error('Failed to get download URI')
-            await ctx.send('Failed to get download URI')
-            return
-
-        # Run synchronous download in a separate thread
-        downloaded_data = await asyncio.to_thread(download_bulk_data, download_uri, total_size)
-        if downloaded_data:
-            await ctx.send("Cards updated successfully.")
-        else:
-            await ctx.send("Failed to update cards. Download aborted.")
-    except Exception as e:
-        logging.error(f'Error during update: {e}')
-        await ctx.send(f'Failed to update cards: {e}')
-
-
-# Command: !update_cards
-@bot.command(name='update_cards')
-async def update_cards(ctx):
-    await ctx.defer()
-    await ctx.send("Updating your cards... :hourglass:")
-    asyncio.create_task(run_update(ctx))
-
-
-# Command: !count_cards
-@bot.command(name='count_cards')
-async def count_cards(ctx):
-    try:
-        result = subprocess.run(['python', 'manage.py', 'count_cards'], capture_output=True, text=True)
-        if result.returncode == 0:
-            await ctx.send(result.stdout)
-        else:
-            await ctx.send(f'Error: {result.stderr}')
-    except Exception as e:
-        await ctx.send(f'Error: {e}')
+        await card_interaction.response.send_message('Failed to retrieve card.')
 
 
 # Command: !hello
