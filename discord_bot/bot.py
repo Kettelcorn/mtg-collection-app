@@ -36,14 +36,15 @@ async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
 
-@tasks.loop(seconds=10)  # Change the interval to 30 seconds
+@tasks.loop(seconds=10)
 async def keep_alive():
     try:
-        # Perform an internal operation to keep the bot's connection alive
-        await bot.ws.ping()
-        print("Sent keep-alive ping")
+        await bot.http.get_gateway()
+        result = subprocess.run(['python', 'manage.py', 'keep_alive'], capture_output=True, text=True)
+        print("Sent keep-alive request")
     except Exception as e:
-        print(f"Error sending keep-alive ping: {e}")
+        print(f"Error sending keep-alive request: {e}")
+
 
 
 # Command: !card <name>
@@ -194,3 +195,4 @@ async def hello(interaction: discord.Interaction):
 def run_bot():
     bot.run(BOT_TOKEN)
 
+result = subprocess.run(['python', 'manage.py', 'count_cards'], capture_output=True, text=True)
