@@ -1,3 +1,5 @@
+import random
+
 import requests
 import json
 from .models import Card
@@ -8,6 +10,9 @@ from django.db import transaction
 SCRYFALL_BULK_DATA_URL = 'https://api.scryfall.com/bulk-data'
 CHUNK_SIZE = 20 * 1024 * 1024
 DELAY_BETWEEN_REQUESTS = 10
+INITIAL_BACKOFF = 1.0
+MAX_BACKOFF = 60.0
+MAX_RETRIES = 5
 
 # Get the bulk data list from Scryfall
 def fetch_bulk_data_list():
@@ -36,15 +41,31 @@ def download_bulk_data(download_uri, total_size):
     while start < total_size:
         end = min(start + CHUNK_SIZE - 1, total_size - 1)
         headers = {'Range': f'bytes={start}-{end}'}
-        try:
-            response = requests.get(download_uri, headers=headers)
-            response.raise_for_status()
-            data_bytes.extend(response.content)
-            percent_complete = (end + 1) / total_size * 100
-            logging.info(f'Downloaded {percent_complete:.2f}% of the bulk data')
-        except requests.RequestException as e:
-            logging.error(f'Failed to download bulk data: {e}')
+        attempts = 0
+        while attempts < MAX_RETRIES:
+            try:
+                response = requests.get(download_uri, headers=headers)
+                if response.status_code == 429:
+                    attempts += 1
+                    wait_time = min(INITIAL_BACKOFF * (2 ** attempts) + random.uniform(0,1), MAX_BACKOFF)
+                    logging.warning(f"Rate limit exceeded. Retrying in {wait_time:.2f} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    response.raise_for_status()
+                    data_bytes.extend(response.content)
+                    percent_complete = (end + 1) / total_size * 100
+                    logging.info(f'Downloaded {percent_complete:.2f}% of the bulk data')
+                    break
+            except requests.RequestException as e:
+                attempts += 1
+                wait_time = min(INITIAL_BACKOFF * (2 ** attempts) + random.uniform(0, 1), MAX_BACKOFF)
+                logging.error(f'Failed to download bulk data: {e}. Retrying in {wait_time:.2f} seconds...')
+                time.sleep(wait_time)
+
+        if attempts == MAX_RETRIES:
+            logging.error('Max retries reached. Download aborted.')
             return
+
         start += CHUNK_SIZE
         time.sleep(DELAY_BETWEEN_REQUESTS)
     return bytes(data_bytes)
