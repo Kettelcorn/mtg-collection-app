@@ -78,13 +78,15 @@ async def card(ctx, *, name: str):
 
 async def run_update(ctx):
     try:
-        download_uri, total_size = get_bulk_data_download_uri(data_type="default_cards")
+        # Run synchronous code in a separate thread
+        download_uri, total_size = await asyncio.to_thread(get_bulk_data_download_uri, "default_cards")
         if not download_uri:
             logging.error('Failed to get download URI')
             await ctx.send('Failed to get download URI')
             return
 
-        downloaded_data = await download_bulk_data(download_uri, total_size)
+        # Run synchronous download in a separate thread
+        downloaded_data = await asyncio.to_thread(download_bulk_data, download_uri, total_size)
         if downloaded_data:
             await ctx.send("Cards updated successfully.")
         else:
