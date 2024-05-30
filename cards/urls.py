@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import CardNameView, UpdateCardsView
+from .views import CardNameView, PingView
 
 
+# URL patterns for the cards app
 urlpatterns = [
     path('card/', CardNameView.as_view(), name='card-name'),
-    path('update-cards/', UpdateCardsView.as_view(), name='update-cards'),
+    path('ping/', PingView.as_view(), name='ping')
 ]
