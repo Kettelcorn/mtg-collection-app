@@ -173,7 +173,7 @@ async def on_message(message):
                 if message.reference.message_id == prompt_message_ids[user_id]:
                         for attachment in message.attachments:
                             if attachment.filename.endswith('.csv'):
-                                await attachment.save(attachment.filename)
+                                # await attachment.save(attachment.filename)
                                 await message.channel.send(f"CSV file '{attachment.filename}' uploaded successfully!")
 
                                 # Send the file to the Django server
