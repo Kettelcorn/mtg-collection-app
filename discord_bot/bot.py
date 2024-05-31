@@ -15,7 +15,7 @@ load_dotenv()
 # Get the bot token from the environment
 BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
-CARD_API = os.getenv('CARD_API')
+GET_CARD = os.getenv('GET_CARD')
 PING_API = os.getenv('PING_API')
 
 prompt_message_ids = {}
@@ -50,7 +50,7 @@ async def keep_alive():
 @bot.tree.command(name='card', description='Get information about a Magic: The Gathering card')
 async def card(card_interaction: discord.Interaction, name: str):
 
-    response = requests.get(f"{API_URL}{CARD_API}", params={'name': name})
+    response = requests.get(f"{API_URL}{GET_CARD}", params={'name': name})
     if response.status_code == 200:
         set_list = response.json().get('data')
         set_options = []

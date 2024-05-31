@@ -12,7 +12,7 @@ SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 
 
 # Gets card details from Scryfall API
-class CardNameView(APIView):
+class GetCardView(APIView):
     def get(self, request, *args, **kwargs):
         card_name = request.query_params.get('name')
         if card_name:
