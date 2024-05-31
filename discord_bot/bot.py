@@ -162,18 +162,14 @@ async def upload(interaction: discord.Interaction):
 @bot.event
 async def on_message(message):
     user_id = message.author.id
-    logging.info(f"User ID: {user_id}")
-    logging.info(f"Prompt message IDs: {prompt_message_ids}")
     if user_id in prompt_message_ids:
-        logging.info("User found in prompt message IDs.")
         if message.attachments:
-            logging.info("Attachments found.")
             if message.reference and message.reference.message_id:
-                logging.info("Reference message found.")
                 if message.reference.message_id == prompt_message_ids[user_id]:
                         for attachment in message.attachments:
                             if attachment.filename.endswith('.csv'):
                                 # await attachment.save(attachment.filename)
+                                # TODO: Need to save Product ID, which matches tcgplayer_id
                                 await message.channel.send(f"CSV file '{attachment.filename}' uploaded successfully!")
 
                                 # Send the file to the Django server
