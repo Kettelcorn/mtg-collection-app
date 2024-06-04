@@ -187,8 +187,8 @@ async def card(card_interaction: discord.Interaction, name: str):
         await card_interaction.response.send_message('Failed to retrieve card.')
 
 
-# Command: /upload
-@bot.tree.command(name="upload", description="Upload a CSV file")
+# Command: /update_collection
+@bot.tree.command(name="update_collection", description="Upload a CSV file to update your collection")
 async def upload(interaction: discord.Interaction):
     response = await interaction.response.send_message("Please reply to this message with your CSV file attached.")
     message = await interaction.original_response()
