@@ -101,12 +101,12 @@ async def card(card_interaction: discord.Interaction, name: str):
                                 # Check if the card has two faces
                                 card_face1 = chosen_card
                                 card_face2 = None
-                                if "card_faces" in chosen_card:
-                                    card_face1 = chosen_card.get('card_faces')[0]
-                                    card_face2 = chosen_card.get('card_faces')[1]
+                                if "image_uris" not in chosen_card:
+                                    if "card_faces" in chosen_card:
+                                        card_face1 = chosen_card.get('card_faces')[0]
+                                        card_face2 = chosen_card.get('card_faces')[1]
 
-                                embed1 = discord.Embed(title=card_face1.get('name'),
-                                                      description=card_face1.get('oracle_text'))
+                                embed1 = discord.Embed(title=card_face1.get('name'))
                                 embed1.add_field(name="Mana Cost",
                                                 value=card_face1.get('mana_cost'), inline=True)
                                 embed1.add_field(name="CMC",
@@ -117,8 +117,7 @@ async def card(card_interaction: discord.Interaction, name: str):
 
                                 embed2 = None
                                 if card_face2:
-                                    embed2 = discord.Embed(title=card_face2.get('name'),
-                                                          description=card_face2.get('oracle_text'))
+                                    embed2 = discord.Embed(title=card_face2.get('name'))
                                     embed2.add_field(name="Mana Cost",
                                                     value=card_face2.get('mana_cost'), inline=True)
                                     embed2.add_field(name="Type",
@@ -127,8 +126,7 @@ async def card(card_interaction: discord.Interaction, name: str):
                                     embed2.set_image(url=card_face2.get('image_uris').get('normal'))
 
                                 # Creates main embed with card details
-                                embed_main = discord.Embed(title=chosen_card.get('name'),
-                                                           description=chosen_card.get('oracle_text'))
+                                embed_main = discord.Embed(title=chosen_card.get('name'))
                                 embed_main.add_field(name="Mana Cost",
                                                      value=chosen_card.get('mana_cost'), inline=True)
                                 embed_main.add_field(name="CMC",
@@ -195,6 +193,7 @@ async def upload(interaction: discord.Interaction):
     prompt_message_ids[interaction.user.id] = message.id
 
 
+# Event listener for when a message is sent
 @bot.event
 async def on_message(message):
     user_id = message.author.id

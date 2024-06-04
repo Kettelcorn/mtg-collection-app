@@ -45,6 +45,12 @@ class UpdateCollectionView(APIView):
             return Response({'error': 'No file or action provided'}, status=400)
 
 
+class CreateUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+
 # Ping view to check if the server is running
 class PingView(APIView):
     def post(self, request, *args, **kwargs):
