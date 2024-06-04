@@ -34,6 +34,17 @@ class GetCardView(APIView):
             return Response({'error': 'No card name provided'}, status=400)
 
 
+class UpdateCollectionView(APIView):
+    def post(self, request, *args, **kwargs):
+        csv_file = request.FILES.get('file')
+        action = request.data.get('action')
+        if csv_file and action:
+            logger.info(f"File received: {csv_file.name}")
+            return Response({'message': 'Data received successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'No file or action provided'}, status=400)
+
+
 # Ping view to check if the server is running
 class PingView(APIView):
     def post(self, request, *args, **kwargs):

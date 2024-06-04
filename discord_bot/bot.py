@@ -3,6 +3,7 @@ import subprocess
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
+import aiohttp
 import requests
 import logging
 
@@ -16,6 +17,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
 GET_CARD = os.getenv('GET_CARD')
+UPDATE_COLLECTION = os.getenv('UPDATE_COLLECTION')
 PING_API = os.getenv('PING_API')
 
 prompt_message_ids = {}
@@ -202,23 +204,25 @@ async def on_message(message):
                 if message.reference.message_id == prompt_message_ids[user_id]:
                         for attachment in message.attachments:
                             if attachment.filename.endswith('.csv'):
-                                # await attachment.save(attachment.filename)
-                                # TODO: Need to save Product ID, which matches tcgplayer_id
-                                await message.channel.send(f"CSV file '{attachment.filename}' uploaded successfully!")
+                                async with aiohttp.ClientSession() as session:
+                                    async with session.get(attachment.url) as response:
+                                        if response.status == 200:
+                                            data = await response.read()
+                                            form = aiohttp.FormData()
+                                            form.add_field('file', data,
+                                                           filename=attachment.filename, content_type='text/csv')
+                                            form.add_field('action', 'add')
 
-                                # Send the file to the Django server
-                                # with open(attachment.filename, 'rb') as f:
-                                #     # response = requests.post('http://your-django-server.com/upload_csv/',
-                                #                              #files={'file': f})
-                                #
-                                # if response.status_code == 200:
-                                #     await message.channel.send("File processed successfully by the server!")
-                                # else:
-                                #     await message.channel.send("Failed to process file on the server.")
-                                #
-                                # # Clean up the file
-                                # os.remove(attachment.filename)
-                                # del prompt_message_ids[user_id]
+                                            async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
+                                                                    data=form) as api_response:
+                                                if api_response.status == 200:
+                                                    await message.channel.send(
+                                                        f"CSV file '{attachment.filename}' uploaded successfully!")
+                                                else:
+                                                    await message.channel.send(
+                                                        f"Failed to upload CSV file '{attachment.filename}'")
+
+                                del prompt_message_ids[user_id]
 
 
 # Command: /hello
