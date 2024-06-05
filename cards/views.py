@@ -5,6 +5,8 @@ import logging
 import os
 from dotenv import load_dotenv
 import requests
+from .models import User
+from .serializers import UserSerializer
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -47,9 +49,12 @@ class UpdateCollectionView(APIView):
 
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # Ping view to check if the server is running
 class PingView(APIView):

@@ -18,6 +18,7 @@ BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
 GET_CARD = os.getenv('GET_CARD')
 UPDATE_COLLECTION = os.getenv('UPDATE_COLLECTION')
+CREATE_USER = os.getenv('CREATE_USER')
 PING_API = os.getenv('PING_API')
 
 prompt_message_ids = {}
@@ -183,6 +184,22 @@ async def card(card_interaction: discord.Interaction, name: str):
     else:
         logging.error(f'Failed to retrieve card: {response.status_code}')
         await card_interaction.response.send_message('Failed to retrieve card.')
+
+
+# Command: /create_user
+@bot.tree.command(name='create_user', description='Create a new user')
+async def create_user(interaction: discord.Interaction):
+    user_id = interaction.user.id
+    username = interaction.user.name
+    data = {
+        'discord_id': user_id,
+        'discord_username': username,
+    }
+    response = requests.post(f"{API_URL}{CREATE_USER}", json=data)
+    if response.status_code == 201:
+        await interaction.response.send_message('User created successfully!')
+    else:
+        await interaction.response.send_message('Failed to create user.')
 
 
 # Command: /update_collection
