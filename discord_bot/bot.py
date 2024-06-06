@@ -56,7 +56,10 @@ async def card(card_interaction: discord.Interaction, name: str):
 
     response = requests.get(f"{API_URL}{GET_CARD}", params={'name': name})
     if response.status_code == 200:
-        set_list = response.json().get('data')
+        card_data = response.json()
+        set_list = card_data.get('prints', [])
+        user_list = card_data.get('users', [])
+
         set_options = []
         for set_card in set_list:
             label = f"{set_card.get('set_name')} - {set_card.get('collector_number')}"
@@ -145,6 +148,16 @@ async def card(card_interaction: discord.Interaction, name: str):
                                 embed_main.add_field(name="Price (USD)",
                                                      value=f"${chosen_card.get('prices').get(price_key)}",
                                                      inline=True)
+                                embed_main.add_field(name="Finish",
+                                                     value=chosen_finish.capitalize(), inline=True)
+                                owners = []
+                                for user in user_list:
+                                    owners.append(
+                                        f"\n**{user['username']}:**\n{user['set']}\n{user['collector_number']}" \
+                                        f"\n{user['finish']}\n${user['price']}\nQuantity:{user['quantity']}"
+                                    )
+                                embed_main.add_field(name="Owner of this card",
+                                                     value=", ".join(owners), inline=True)
 
                                 if embed2:
                                     await finish_interaction.response.send_message(embeds=[embed_main, embed1, embed2])

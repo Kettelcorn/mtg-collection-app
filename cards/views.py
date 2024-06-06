@@ -32,8 +32,33 @@ class GetCardView(APIView):
                 response = requests.get(SCRYFALL_URL, params=params)
                 if response.status_code == 200:
                     logger.info(f"Card details fetched")
-                    response = requests.get(response.json().get('prints_search_uri'))
-                    return Response(response.json(), status=status.HTTP_200_OK)
+                    users = []
+                    card_details = response.json()
+
+                    for user in User.objects.all():
+                        collection = user.collection
+                        cards = collection.cards.filter(card_name=card_name)
+                        if cards:
+                            for card in cards:
+                                users.append(
+                                    {
+                                        "username": user.discord_username,
+                                        "set": card.set,
+                                        "collector_number": card.collector_number,
+                                        "finish": card.finish,
+                                        "price": card.price,
+                                        "quantity": card.quantity
+                                    }
+                                )
+                    card_details['users'] = users
+                    print_search_uri = card_details.get('prints_search_uri')
+                    if print_search_uri:
+                        print_response = requests.get(print_search_uri)
+                        if print_response.status_code == 200:
+                            card_details['prints'] = print_response.json().get('data', [])
+                        else:
+                            logger.warning(f"Error fetching print data: {print_response.json()}")
+                    return Response(card_details, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'Card not found'}, response.status_code)
             except Exception as e:
