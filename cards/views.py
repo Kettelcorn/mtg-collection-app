@@ -10,6 +10,7 @@ from .serializers import UserSerializer
 import csv
 import json
 import time
+from .models import Card, Collection, User
 
 
 
@@ -40,6 +41,33 @@ class GetCardView(APIView):
         else:
             return Response({'error': 'No card name provided'}, status=400)
 
+class GetCollectionView(APIView):
+    def get(self, request, *args, **kwargs):
+        discord_id = request.query_params.get('discord_id')
+        if discord_id:
+            try:
+                user = User.objects.get(discord_id=discord_id)
+                collection = user.collection
+                cards = collection.cards.all()
+                card_list = []
+                for card in cards:
+                    card_list.append({
+                        'card_name': card.card_name,
+                        'scryfall_id': card.scryfall_id,
+                        'tcg_id': card.tcg_id,
+                        'set': card.set,
+                        'collector_number': card.collector_number,
+                        'finish': card.finish,
+                        'print_uri': card.print_uri,
+                        'price': card.price,
+                        'quantity': card.quantity
+                    })
+                return Response(card_list, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"Error fetching collection: {e}")
+                return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({'error': 'No discord_id provided'}, status=400)
 
 class UpdateCollectionView(APIView):
     def post(self, request, *args, **kwargs):
@@ -79,16 +107,52 @@ class UpdateCollectionView(APIView):
                             logger.info(f"Card details fetched")
                             data = response.json()
                             scryfall_data.append(data)
-                            for card in data.get('data'):
-                                logger.info(f"Card found: {card.get('name')}")
                         else:
                             logger.error(f"Error fetching card details: {response.json()}")
-                        identifiers = []
                         time.sleep(0.2)
+
+                logger.info(f"discord_id: {request.data.get('discord_id')}")
+                user = User.objects.get(discord_id=request.data.get('discord_id'))
+                collection = user.collection
+                collection.cards.all().delete()
+
+                for data in scryfall_data:
+                    for selected_card in data.get('data'):
+                        name = selected_card.get('name')
+                        id = selected_card.get('id')
+                        tcgplayer_id = selected_card.get('tcgplayer_id')
+                        set_name = selected_card.get('set_name')
+                        collector_number = selected_card.get('collector_number')
+                        finish = None
+                        if card['Printing'] == 'Normal':
+                            finish = 'nonfoil'
+                        elif card['Printing'] == 'Foil':
+                            finish = 'foil'
+                        uri = selected_card.get('uri')
+                        price = None
+                        if finish == 'foil':
+                            price = selected_card.get('prices').get('usd_foil')
+                        else:
+                            price = selected_card.get('prices').get('usd')
+                        quantity = card['Quantity']
+
+                        card_obj = Card(
+                            card_name=name,
+                            scryfall_id=id,
+                            tcg_id=tcgplayer_id,
+                            set=set_name,
+                            collector_number=collector_number,
+                            finish=finish,
+                            print_uri=uri,
+                            collection=collection,
+                            price=price,
+                            quantity=quantity
+                        )
+                        card_obj.save()
+                return Response({'message': 'Data received successfully'}, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Error processing file: {e}")
                 return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            return Response({'message': 'Data received successfully'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'No file or action provided'}, status=400)
 

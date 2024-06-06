@@ -228,6 +228,7 @@ async def on_message(message):
                                             form.add_field('file', data,
                                                            filename=attachment.filename, content_type='text/csv')
                                             form.add_field('action', 'add')
+                                            form.add_field('discord_id', str(user_id))
 
                                             async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
                                                                     data=form) as api_response:

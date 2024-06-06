@@ -9,7 +9,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create(**validated_data)
-        Collection.objects.create(user=user)
+        collection = Collection.objects.create(user=user)
+        user.collection = collection
+        user.save()
         return user
 
 
