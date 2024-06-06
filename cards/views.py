@@ -11,6 +11,7 @@ import csv
 import json
 import time
 from .models import Card, Collection, User
+from decimal import Decimal
 
 
 
@@ -41,6 +42,7 @@ class GetCardView(APIView):
         else:
             return Response({'error': 'No card name provided'}, status=400)
 
+
 class GetCollectionView(APIView):
     def get(self, request, *args, **kwargs):
         discord_id = request.query_params.get('discord_id')
@@ -50,11 +52,8 @@ class GetCollectionView(APIView):
                 collection = user.collection
                 cards = collection.cards.all()
                 card_list = []
-                card_list.append(
-                    {
-                        "card_count": len(cards)
-                    }
-                )
+                total_value = Decimal(0.00)
+                total_quantity = 0
                 for card in cards:
                     card_list.append(
                         {
@@ -69,6 +68,9 @@ class GetCollectionView(APIView):
                             'quantity': card.quantity
                         }
                     )
+                    total_value += card.price * card.quantity
+                    total_quantity += card.quantity
+                card_list.insert(0,{"card_count": total_quantity, "total_value": total_value})
                 return Response(card_list, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Error fetching collection: {e}")
@@ -96,9 +98,22 @@ class UpdateCollectionView(APIView):
                 identifiers = []
                 scryfall_data = []
                 count = 0
+                total_quantity = 0
+                total_sent = 0
+                total_received = 0
                 for card in card_list:
-                    collector_number = card['Card Number']
-                    set_code = card['Set Code']
+                    total_quantity += int(card['Quantity'])
+                    collector_number = None
+                    set_code = None
+                    # the if checks are to handle different formats of the csv file
+                    if 'Card Number' in card:
+                        collector_number = card['Card Number']
+                    elif 'Collector number' in card:
+                        collector_number = card['Collector number']
+                    if 'Set Code' in card:
+                        set_code = card['Set Code']
+                    if 'Set code' in card:
+                        set_code = card['Set code']
                     identifiers.append(
                         {
                             'collector_number': collector_number,
@@ -108,6 +123,7 @@ class UpdateCollectionView(APIView):
                     count += 1
                     if len(identifiers) == 75 or count == len(card_list):
                         logger.info(f"Identifiers length: {len(identifiers)}")
+                        total_sent += len(identifiers)
                         body = {
                             "identifiers": identifiers
                         }
@@ -119,34 +135,57 @@ class UpdateCollectionView(APIView):
                         else:
                             logger.error(f"Error fetching card details: {response.json()}")
                         identifiers = []
-                        time.sleep(0.2)
-
+                        time.sleep(0.1)
+                logger.info(f"Total quantity in csv: {total_quantity}")
+                logger.info(f"Total sent to Scryfall: {total_sent}")
                 logger.info(f"discord_id: {request.data.get('discord_id')}")
                 user = User.objects.get(discord_id=request.data.get('discord_id'))
                 collection = user.collection
                 collection.cards.all().delete()
 
+                index = 0
                 for data in scryfall_data:
                     for selected_card in data.get('data'):
                         name = selected_card.get('name')
                         id = selected_card.get('id')
                         tcgplayer_id = selected_card.get('tcgplayer_id')
+                        if tcgplayer_id is None:
+                            tcgplayer_id = 0
                         set_name = selected_card.get('set_name')
                         collector_number = selected_card.get('collector_number')
                         finish = None
-                        if card['Printing'] == 'Normal':
-                            finish = 'nonfoil'
-                        elif card['Printing'] == 'Foil':
-                            finish = 'foil'
+                        if 'Foil' in card_list[index]:
+                            if card_list[index]['Foil'] == 'normal':
+                                finish = 'nonfoil'
+                            elif card_list[index]['Foil'] == 'foil':
+                                finish = 'foil'
+                            elif card_list[index]['Foil'] == 'etched':
+                                finish = 'etched'
+                        elif 'Printing' in card_list[index]:
+                            if card_list[index]['Printing'] == 'Normal':
+                                finish = 'nonfoil'
+                            elif card_list[index]['Printing'] == 'Foil':
+                                for finish in selected_card.get('finishes'):
+                                    if finish == 'etched':
+                                        finish = 'etched'
+                                    elif finish == 'foil':
+                                        finish = 'foil'
+                                        break
+
+                        if finish is None:
+                            finish = 'none'
+                        logger.info(f"Finish: {finish}")
                         uri = selected_card.get('uri')
                         price = None
                         if finish == 'foil':
                             price = selected_card.get('prices').get('usd_foil')
-                        else:
+                        elif finish == 'nonfoil':
                             price = selected_card.get('prices').get('usd')
+                        elif finish == 'etched':
+                            price = selected_card.get('prices').get('usd_etched')
                         if price is None:
-                            price = 0.00
-                        quantity = card['Quantity']
+                            price = Decimal(0.00)
+                        quantity = card_list[index]['Quantity']
 
                         card_obj = Card(
                             card_name=name,
@@ -161,6 +200,7 @@ class UpdateCollectionView(APIView):
                             quantity=quantity
                         )
                         card_obj.save()
+                        index += 1
                 return Response({'message': 'Data received successfully'}, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Error processing file: {e}")

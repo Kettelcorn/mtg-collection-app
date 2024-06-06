@@ -17,6 +17,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
 GET_CARD = os.getenv('GET_CARD')
+GET_COLLECTION = os.getenv('GET_COLLECTION')
 UPDATE_COLLECTION = os.getenv('UPDATE_COLLECTION')
 CREATE_USER = os.getenv('CREATE_USER')
 PING_API = os.getenv('PING_API')
@@ -200,6 +201,26 @@ async def create_user(interaction: discord.Interaction):
         await interaction.response.send_message('User created successfully!')
     else:
         await interaction.response.send_message('Failed to create user.')
+
+
+# Command: /get_collection
+@bot.tree.command(name='get_collection', description='Get your collection')
+async def get_collection(interaction: discord.Interaction):
+    user_id = interaction.user.id
+    response = requests.get(f"{API_URL}{GET_COLLECTION}", params={'discord_id': user_id})
+    if response.status_code == 200:
+        collection = response.json()
+        if collection:
+            card_count = collection[0]['card_count']
+            total_value = collection[0]['total_value']
+            embed = discord.Embed(title=f"{interaction.user.name}'s Collection")
+            embed.add_field(name="Card Count", value=card_count, inline=True)
+            embed.add_field(name="Total Value", value=f"${total_value}", inline=True)
+            await interaction.response.send_message(embed=embed)
+        else:
+            await interaction.response.send_message('No cards found in your collection.')
+    else:
+        await interaction.response.send_message('Failed to retrieve collection.')
 
 
 # Command: /update_collection
