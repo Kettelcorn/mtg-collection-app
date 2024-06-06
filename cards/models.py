@@ -20,6 +20,7 @@ class Collection(models.Model):
 
 class Card(models.Model):
     card_name = models.CharField(max_length=255, default='Card Name')
+    scryfall_id = models.CharField(max_length=255, unique=False, default='0')
     tcg_id = models.IntegerField(unique=False, default=0)
     set = models.CharField(max_length=255, default='Set Name')
     collector_number = models.CharField(max_length=10, default='0')
