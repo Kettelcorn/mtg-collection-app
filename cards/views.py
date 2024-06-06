@@ -58,6 +58,7 @@ class UpdateCollectionView(APIView):
                 card_list = [row for row in reader]
                 logger.info(f"{len(card_list)} cards found")
                 identifiers = []
+                scryfall_data = []
                 count = 0
                 for card in card_list:
                     collector_number = card['Card Number']
@@ -77,6 +78,7 @@ class UpdateCollectionView(APIView):
                         if response.status_code == 200:
                             logger.info(f"Card details fetched")
                             data = response.json()
+                            scryfall_data.append(data)
                             for card in data.get('data'):
                                 logger.info(f"Card found: {card.get('name')}")
                         else:
