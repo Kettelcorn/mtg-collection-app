@@ -20,8 +20,11 @@ class Collection(models.Model):
 
 class Card(models.Model):
     card_name = models.CharField(max_length=255, default='Card Name')
+    tcg_id = models.IntegerField(unique=False, default=0)
+    finish = models.CharField(max_length=10, choices=[('foil', 'Foil'), ('nonfoil', 'Nonfoil')], default='nonfoil')
     print_uri = models.URLField(max_length=500)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='cards')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
