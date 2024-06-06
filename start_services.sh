@@ -1,5 +1,7 @@
 #!/bin/bash
 
+python manage.py migrate --noinput
+
 # Function to start Django server
 python manage.py runserver 0.0.0.0:8000 &
 DJANGO_PID=$!
