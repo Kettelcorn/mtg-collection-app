@@ -50,24 +50,32 @@ class GetCollectionView(APIView):
                 collection = user.collection
                 cards = collection.cards.all()
                 card_list = []
+                card_list.append(
+                    {
+                        "card_count": len(cards)
+                    }
+                )
                 for card in cards:
-                    card_list.append({
-                        'card_name': card.card_name,
-                        'scryfall_id': card.scryfall_id,
-                        'tcg_id': card.tcg_id,
-                        'set': card.set,
-                        'collector_number': card.collector_number,
-                        'finish': card.finish,
-                        'print_uri': card.print_uri,
-                        'price': card.price,
-                        'quantity': card.quantity
-                    })
+                    card_list.append(
+                        {
+                            'card_name': card.card_name,
+                            'scryfall_id': card.scryfall_id,
+                            'tcg_id': card.tcg_id,
+                            'set': card.set,
+                            'collector_number': card.collector_number,
+                            'finish': card.finish,
+                            'print_uri': card.print_uri,
+                            'price': card.price,
+                            'quantity': card.quantity
+                        }
+                    )
                 return Response(card_list, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Error fetching collection: {e}")
                 return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'error': 'No discord_id provided'}, status=400)
+
 
 class UpdateCollectionView(APIView):
     def post(self, request, *args, **kwargs):
@@ -99,6 +107,7 @@ class UpdateCollectionView(APIView):
                     )
                     count += 1
                     if len(identifiers) == 75 or count == len(card_list):
+                        logger.info(f"Identifiers length: {len(identifiers)}")
                         body = {
                             "identifiers": identifiers
                         }
@@ -109,6 +118,7 @@ class UpdateCollectionView(APIView):
                             scryfall_data.append(data)
                         else:
                             logger.error(f"Error fetching card details: {response.json()}")
+                        identifiers = []
                         time.sleep(0.2)
 
                 logger.info(f"discord_id: {request.data.get('discord_id')}")
@@ -134,6 +144,8 @@ class UpdateCollectionView(APIView):
                             price = selected_card.get('prices').get('usd_foil')
                         else:
                             price = selected_card.get('prices').get('usd')
+                        if price is None:
+                            price = 0.00
                         quantity = card['Quantity']
 
                         card_obj = Card(
