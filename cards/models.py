@@ -21,6 +21,8 @@ class Collection(models.Model):
 class Card(models.Model):
     card_name = models.CharField(max_length=255, default='Card Name')
     tcg_id = models.IntegerField(unique=False, default=0)
+    set = models.CharField(max_length=255, default='Set Name')
+    collector_number = models.CharField(max_length=10, default='0')
     finish = models.CharField(max_length=10, choices=[('foil', 'Foil'), ('nonfoil', 'Nonfoil')], default='nonfoil')
     print_uri = models.URLField(max_length=500)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='cards')
