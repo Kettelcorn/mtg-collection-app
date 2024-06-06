@@ -7,6 +7,11 @@ from dotenv import load_dotenv
 import requests
 from .models import User
 from .serializers import UserSerializer
+import csv
+import json
+import time
+
+
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -40,8 +45,47 @@ class UpdateCollectionView(APIView):
     def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('file')
         action = request.data.get('action')
+
         if csv_file and action:
             logger.info(f"File received: {csv_file.name}")
+            try:
+                url = "https://api.scryfall.com/cards/collection"
+                headers = {
+                    "Content-Type": "application/json"
+                }
+                decoded_file = csv_file.read().decode('utf-8').splitlines()
+                reader = csv.DictReader(decoded_file)
+                card_list = [row for row in reader]
+                logger.info(f"{len(card_list)} cards found")
+                identifiers = []
+                count = 0
+                for card in card_list:
+                    collector_number = card['Card Number']
+                    set_code = card['Set Code']
+                    identifiers.append(
+                        {
+                            'collector_number': collector_number,
+                            'set': set_code
+                        }
+                    )
+                    count += 1
+                    if len(identifiers) == 75 or count == len(card_list):
+                        body = {
+                            "identifiers": identifiers
+                        }
+                        response = requests.post(url, headers=headers, data=json.dumps(body))
+                        if response.status_code == 200:
+                            logger.info(f"Card details fetched")
+                            data = response.json()
+                            for card in data.get('data'):
+                                logger.info(f"Card found: {card.get('name')}")
+                        else:
+                            logger.error(f"Error fetching card details: {response.json()}")
+                        identifiers = []
+                        time.sleep(0.2)
+            except Exception as e:
+                logger.error(f"Error processing file: {e}")
+                return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response({'message': 'Data received successfully'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'No file or action provided'}, status=400)
