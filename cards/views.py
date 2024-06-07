@@ -32,23 +32,28 @@ class GetCardView(APIView):
                 response = requests.get(SCRYFALL_URL, params=params)
                 if response.status_code == 200:
                     logger.info(f"Card details fetched")
-                    users = []
+                    users = {}
                     card_details = response.json()
 
                     for user in User.objects.all():
                         collection = user.collection
                         cards = collection.cards.filter(card_name=card_name)
+                        logger.info(type(cards))
                         if cards:
                             for card in cards:
-                                users.append(
-                                    {
-                                        "username": user.discord_username,
-                                        "set": card.set,
-                                        "collector_number": card.collector_number,
-                                        "finish": card.finish,
-                                        "price": card.price,
-                                        "quantity": card.quantity
-                                    }
+                                logger.info(f"card: {card}{type(card)}")
+                                if user.discord_username not in users:
+                                    users[user.discord_username] = []
+                                users[user.discord_username].append(
+                                        {
+                                            "username": user.discord_username,
+                                            "set": card.set,
+                                            "collector_number": card.collector_number,
+                                            "finish": card.finish,
+                                            "price": card.price,
+                                            "tcg_id": card.tcg_id,
+                                            "quantity": card.quantity
+                                        }
                                 )
                     card_details['users'] = users
                     print_search_uri = card_details.get('prints_search_uri')
