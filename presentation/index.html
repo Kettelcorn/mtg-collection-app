@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+    </head>
+    <body>
+        <div class="header">
+            <h1>WELCOME</h1>
+            <input id="searchInput" type="text" placeholder="Search...">
+        </div>
+
+        <div class="sidebar">
+            <button id="getCard" class="sidebar-btn">Get Card</button>
+            <button id="getCards" class="sidebar-btn">Get Cards</button>
+            <button id="getUser" class="sidebar-btn">Get User</button>
+            <button id="uploadCSVBtn" class="sidebar-btn">Upload CSV</button>
+        </div>
+
+        <div class="content">
+
+            <div class="loading-spinner hidden"></div>
+
+            <div>
+                <div id="cardDetails" class="hidden div-body">
+                    <div class="card-card">
+                        <img src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="Card Image">
+                        <h3 id="cardName">CARD NAME</h3>
+                        <p id="cardFoil">Foil: yes</p>
+                        <p id="cardSet">SET: some set</p>
+                        <p id="cardPrice" class="price">$50</p>
+                    </div>
+                </div>
+        
+                <div id="cardList" class="hidden div-body">
+                    <table id="cardTable">
+                        <thead>
+                            <tr>
+                                <th>Card Name</th>
+                                <th>Image URL</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+                        </tbody>
+                    </table>
+                </div>
+        
+                <div id="userDetails" class="hidden div-body">
+                    
+                    <div class="user-card-container">
+                        <div class="user-card">
+                            <h3>User Information</h3>
+                            <p>Name: <span id="userName">John Doe</span></p>
+                            <p>DiscordId: <span id="userDiscordID">1234567890</span></p>
+                            <p>DiscordGuild: <span id="userDiscordGuild">Example Guild</span></p>
+                            <p>Password: <span id="userPassword">********</span></p>
+                        </div>
+                    </div>
+        
+                    <div>
+                        <select id="collectionsDropdown" class="select-dropdown">
+                            <option value="option1">Collection 1</option>
+                            <option value="option2">Collection 2</option>
+                        </select>
+            
+                        <table id="userTable">
+                            <thead>
+                                <tr>
+                                    <th>Card Name</th>
+                                    <th>Image URL</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userData">
+                                <tr>
+                                    <td>card1</td>
+                                    <td>url1</td>
+                                    <td>10.00</td>
+                                </tr>
+                                <tr>
+                                    <td>card2</td>
+                                    <td>url2</td>
+                                    <td>11.11</td>
+                                </tr>
+                                <tr>
+                                    <td>card3</td>
+                                    <td>url3</td>
+                                    <td>22.22</td>
+                                </tr>
+                                <tr>
+                                    <td>card4</td>
+                                    <td>url4</td>
+                                    <td>33.33</td>
+                                </tr>
+                                <tr>
+                                    <td>card5</td>
+                                    <td>url5</td>
+                                    <td>44.44</td>
+                                </tr>
+                                <tr>
+                                    <td>card6</td>
+                                    <td>url6</td>
+                                    <td>55.55</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                    </div>
+                </div>
+
+                <div id="uploadCSV" class="hidden">
+                    <div id="drop-zone">Drop your CSV file here</div>
+                    <div id="output"></div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
