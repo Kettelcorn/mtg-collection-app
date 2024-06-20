@@ -32,12 +32,8 @@ class GetCardView(APIView):
                 }
                 response = requests.get(SCRYFALL_URL, params=params)
                 if response.status_code == 200:
-<<<<<<< HEAD
-                    users = []
-=======
                     logger.info(f"Card details fetched")
                     users = {}
->>>>>>> 97cf014e947698d207a268052bc30122ea918f6f
                     card_details = response.json()
 
                     for user in User.objects.all():
