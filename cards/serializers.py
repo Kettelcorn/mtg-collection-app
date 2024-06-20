@@ -8,6 +8,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['discord_id', 'discord_username']
 
     def create(self, validated_data):
+        # TODO: Add a check to see if the user already exists
         user = User.objects.create(**validated_data)
         collection = Collection.objects.create(user=user)
         user.collection = collection

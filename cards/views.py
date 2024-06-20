@@ -24,6 +24,7 @@ SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 class GetCardView(APIView):
     def get(self, request, *args, **kwargs):
         card_name = request.query_params.get('name')
+        search_type = request.query_params.get('type')
         if card_name:
             try:
                 params = {
@@ -31,7 +32,6 @@ class GetCardView(APIView):
                 }
                 response = requests.get(SCRYFALL_URL, params=params)
                 if response.status_code == 200:
-                    logger.info(f"Card details fetched")
                     users = []
                     card_details = response.json()
 
@@ -51,14 +51,17 @@ class GetCardView(APIView):
                                     }
                                 )
                     card_details['users'] = users
-                    print_search_uri = card_details.get('prints_search_uri')
-                    if print_search_uri:
-                        print_response = requests.get(print_search_uri)
-                        if print_response.status_code == 200:
-                            card_details['prints'] = print_response.json().get('data', [])
-                        else:
-                            logger.warning(f"Error fetching print data: {print_response.json()}")
-                    return Response(card_details, status=status.HTTP_200_OK)
+                    if search_type == 'printing':
+                        print_search_uri = card_details.get('prints_search_uri')
+                        if print_search_uri:
+                            print_response = requests.get(print_search_uri)
+                            if print_response.status_code == 200:
+                                card_details['prints'] = print_response.json().get('data', [])
+                            else:
+                                logger.warning(f"Error fetching print data: {print_response.json()}")
+                        return Response(card_details, status=status.HTTP_200_OK)
+                    elif search_type == 'card':
+                        return Response(card_details, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'Card not found'}, response.status_code)
             except Exception as e:
