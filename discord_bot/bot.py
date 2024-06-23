@@ -171,67 +171,6 @@ async def card(card_interaction: discord.Interaction, name: str):
                             finish_select = discord.ui.Select(placeholder="Choose a finish",
                                                               options=finished)
 
-                            # Create the embed for the selected card
-                            # async def create_embed(finish_interaction, chosen_card, chosen_finish):
-                            #     # Check if the card has two faces
-                            #     card_face1 = chosen_card
-                            #     card_face2 = None
-                            #     if "image_uris" not in chosen_card:
-                            #         if "card_faces" in chosen_card:
-                            #             card_face1 = chosen_card.get('card_faces')[0]
-                            #             card_face2 = chosen_card.get('card_faces')[1]
-                            #
-                            #     embed1 = discord.Embed(title=card_face1.get('name'))
-                            #     embed1.set_image(url=card_face1.get('image_uris').get('normal'))
-                            #
-                            #     embed2 = None
-                            #     if card_face2:
-                            #         embed2 = discord.Embed(title=card_face2.get('name'))
-                            #         embed2.set_image(url=card_face2.get('image_uris').get('normal'))
-                            #
-                            #     # Creates main embed with card details
-                            #     embed_main = discord.Embed(title=chosen_card.get('name'))
-                            #     embed_main.add_field(name="Set Name",
-                            #                          value=chosen_card.get('set_name'), inline=True)
-                            #     embed_main.add_field(name="Released At",
-                            #                          value=chosen_card.get('released_at'), inline=True)
-                            #     price_key = 'usd_foil' if chosen_finish == 'foil' else 'usd'
-                            #     embed_main.add_field(name="Price (USD)",
-                            #                          value=f"${chosen_card.get('prices').get(price_key)}",
-                            #                          inline=True)
-                            #     embed_main.add_field(name="Collector Number",
-                            #                          value=f"{chosen_card.get('set').upper()} {chosen_card.get('collector_number')}", inline=True)
-                            #     embed_main.add_field(name="Finish",
-                            #                          value=chosen_finish.capitalize(), inline=True)
-                            #     links = [
-                            #         f"* [TCGplayer]({chosen_card.get('purchase_uris').get('tcgplayer')})\n",
-                            #         f"* [Scryfall]({chosen_card.get('scryfall_uri')})\n",
-                            #         f"* [EDHREC]({chosen_card.get('related_uris').get('edhrec')})\n"
-                            #     ]
-                            #     linkList = ""
-                            #     for link in links:
-                            #         linkList += link
-                            #     embed_main.add_field(name="Links",
-                            #                          value=linkList,inline=True)
-                            #
-                            #     output = ""
-                            #     for key, value in users.items():
-                            #         output += f"__**{key}:**__\n"
-                            #         for card in value:
-                            #             card_link = f"https://www.tcgplayer.com/product/{card['tcg_id']}"
-                            #             output += f"* [{card['set']} {card['collector_number']}]({card_link})\n" \
-                            #                       f" * Finish: {card['finish'].capitalize()}\n * Price: ${card['price']}\n" \
-                            #                       f" * Quantity: {card['quantity']}\n"
-                            #
-                            #     embed_main.add_field(name="Owners",
-                            #                              value=output, inline=True)
-                            #
-                            #     if embed2:
-                            #         await finish_interaction.response.send_message(embeds=[embed_main, embed1, embed2])
-                            #     else:
-                            #         embed_main.set_image(url=chosen_card.get('image_uris').get('normal'))
-                            #         await finish_interaction.response.send_message(embed=embed_main)
-
                             # Callback function for the finish select menu
                             async def select_finish(finish_interaction):
                                 selected_finish = None
