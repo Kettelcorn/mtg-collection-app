@@ -19,4 +19,15 @@ class UserSerializer(serializers.ModelSerializer):
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['card_name', 'scryfall_id', 'tcg_id', 'set', 'collector_number', 'finish', 'print_uri', 'collection', 'price', 'quantity']
+        fields = [
+            'card_name',
+            'scryfall_id',
+            'tcg_id',
+            'set',
+            'collector_number',
+            'finish',
+            'print_uri',
+            'collection',
+            'price',
+            'quantity'
+        ]

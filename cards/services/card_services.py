@@ -10,11 +10,11 @@ class CardService:
         self.card_repository = CardRepository()
         self.user_repository = UserRepository()
 
-    def fetch_card_details(self, card_name, search_type, SCRYFALL_URL):
+    def fetch_card_details(self, card_name, search_type, scryfall_url):
         params = {
             'fuzzy': card_name
         }
-        response = requests.get(SCRYFALL_URL, params=params)
+        response = requests.get(scryfall_url, params=params)
         if response.status_code != 200:
             return None, response.status_code
         card_details = response.json()

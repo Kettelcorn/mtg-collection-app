@@ -1,5 +1,4 @@
 import discord
-import subprocess
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
@@ -45,7 +44,7 @@ async def on_ready():
 @tasks.loop(seconds=60)
 async def keep_alive():
     try:
-        response = requests.post(f"{API_URL}{PING_API}")
+        requests.post(f"{API_URL}{PING_API}")
     except Exception as e:
         logging.error(f'Error sending ping: {e}')
 
@@ -82,6 +81,8 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
                          value=f"{chosen_card.get('set').upper()} {chosen_card.get('collector_number')}", inline=True)
     embed_main.add_field(name="Finish",
                          value=chosen_finish.capitalize(), inline=True)
+
+    # Create hyperlinks for TCGplayer, Scryfall, and EDHREC
     links = [
         f"* [TCGplayer]({chosen_card.get('purchase_uris').get('tcgplayer')})\n",
         f"* [Scryfall]({chosen_card.get('scryfall_uri')})\n",
@@ -93,14 +94,15 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
     embed_main.add_field(name="Links",
                          value=linkList, inline=True)
 
+    # Create a list of users who own the card
     output = ""
     for key, value in users.items():
         output += f"__**{key}:**__\n"
-        for card in value:
-            card_link = f"https://www.tcgplayer.com/product/{card['tcg_id']}"
-            output += f"* [{card['set']} {card['collector_number']}]({card_link})\n" \
-                      f" * Finish: {card['finish'].capitalize()}\n * Price: ${card['price']}\n" \
-                      f" * Quantity: {card['quantity']}\n"
+        for ownedCard in value:
+            card_link = f"https://www.tcgplayer.com/product/{ownedCard['tcg_id']}"
+            output += f"* [{ownedCard['set']} {ownedCard['collector_number']}]({card_link})\n" \
+                      f" * Finish: {ownedCard['finish'].capitalize()}\n * Price: ${ownedCard['price']}\n" \
+                      f" * Quantity: {ownedCard['quantity']}\n"
 
     embed_main.add_field(name="Owners",
                          value=output, inline=True)
@@ -245,7 +247,7 @@ async def get_collection(interaction: discord.Interaction):
 # Command: /update_collection
 @bot.tree.command(name="update_collection", description="Upload a CSV file to update your collection")
 async def upload(interaction: discord.Interaction):
-    response = await interaction.response.send_message("Please reply to this message with your CSV file attached.")
+    await interaction.response.send_message("Please reply to this message with your CSV file attached.")
     message = await interaction.original_response()
     prompt_message_ids[interaction.user.id] = message.id
 
@@ -253,33 +255,34 @@ async def upload(interaction: discord.Interaction):
 # Event listener for when a message is sent
 @bot.event
 async def on_message(message):
+    # Check if the message is from the user who uploaded the CSV file
     user_id = message.author.id
     if user_id in prompt_message_ids:
         if message.attachments:
             if message.reference and message.reference.message_id:
                 if message.reference.message_id == prompt_message_ids[user_id]:
-                        for attachment in message.attachments:
-                            if attachment.filename.endswith('.csv'):
-                                async with aiohttp.ClientSession() as session:
-                                    async with session.get(attachment.url) as response:
-                                        if response.status == 200:
-                                            data = await response.read()
-                                            form = aiohttp.FormData()
-                                            form.add_field('file', data,
-                                                           filename=attachment.filename, content_type='text/csv')
-                                            form.add_field('action', 'add')
-                                            form.add_field('discord_id', str(user_id))
+                    for attachment in message.attachments:
+                        if attachment.filename.endswith('.csv'):
+                            async with aiohttp.ClientSession() as session:
+                                async with session.get(attachment.url) as response:
+                                    if response.status == 200:
+                                        data = await response.read()
+                                        form = aiohttp.FormData()
+                                        form.add_field('file', data,
+                                                       filename=attachment.filename, content_type='text/csv')
+                                        form.add_field('action', 'add')
+                                        form.add_field('discord_id', str(user_id))
 
-                                            async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
-                                                                    data=form) as api_response:
-                                                if api_response.status == 200:
-                                                    await message.channel.send(
-                                                        f"CSV file '{attachment.filename}' uploaded successfully!")
-                                                else:
-                                                    await message.channel.send(
-                                                        f"Failed to upload CSV file '{attachment.filename}'")
+                                        async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
+                                                                data=form) as api_response:
+                                            if api_response.status == 200:
+                                                await message.channel.send(
+                                                    f"CSV file '{attachment.filename}' uploaded successfully!")
+                                            else:
+                                                await message.channel.send(
+                                                    f"Failed to upload CSV file '{attachment.filename}'")
 
-                                del prompt_message_ids[user_id]
+                            del prompt_message_ids[user_id]
 
 
 # Command: /hello
