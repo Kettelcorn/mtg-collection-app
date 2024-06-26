@@ -50,6 +50,18 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    def test_get_card_adventure(self):
+        response = self.client.get(self.url, {'name': 'Mosswood Dreadknight // Dread Whispers', 'type': 'card'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('adventure', response.data.get('layout'))
+        expected_fields = [
+            'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
+            'finishes', 'tcgplayer_id', 'card_faces', 'related_uris', 'image_uris'
+        ]
+        for field in expected_fields:
+            with self.subTest(field=field):
+                self.assertIn(field, response.data)
+
     def test_get_card_invalid_name(self):
         response = self.client.get(self.url, {'name': 'invalid card name', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
