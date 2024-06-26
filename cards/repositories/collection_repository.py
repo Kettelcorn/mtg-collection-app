@@ -1,5 +1,6 @@
 from ..models import Collection
 
+
 class CollectionRepository:
     def create_collection(self, user):
         return Collection.objects.create(user=user)

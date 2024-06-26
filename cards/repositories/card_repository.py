@@ -1,5 +1,6 @@
 from ..models import Card
 
+
 class CardRepository:
     def get_cards_by_collection_and_name(self, collection, card_name):
         return collection.cards.filter(card_name=card_name)
@@ -10,4 +11,3 @@ class CardRepository:
     def create_card(self, card_data):
         return Card.objects.create(**card_data)
 
-    

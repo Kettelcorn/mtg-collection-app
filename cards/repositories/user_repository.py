@@ -1,5 +1,6 @@
 from ..models import User
 
+
 class UserRepository:
     def get_user_by_discord_id(self, discord_id):
         return User.objects.get(discord_id=discord_id)
