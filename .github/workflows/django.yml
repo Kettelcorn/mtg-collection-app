@@ -27,5 +27,15 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tests
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          API_URL: ${{ secrets.API_URL }}
+          PING_API: ${{ secrets.PING_API }}
+          GET_CARD: ${{ secrets.GET_CARD }}
+          GET_COLLECTION: ${{ secrets.GET_COLLECTION }}
+          UPDATE_COLLECTION: ${{ secrets.UPDATE_COLLECTION }}
+          CREATE_USER: ${{ secrets.CREATE_USER }}
+          SCRYFALL_URL: ${{ secrets.SCRYFALL_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           python manage.py test
