@@ -44,4 +44,7 @@ class CardService:
                     card_details['prints'] = print_response.json().get('data', [])
                 else:
                     return None, print_response.status_code
-        return card_details, 200
+        elif search_type == 'card':
+            return card_details, 200
+        else:
+            return None, 400

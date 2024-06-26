@@ -44,6 +44,7 @@ class CollectionService:
 
     # Process CSV file and update collection#
     def process_csv_and_update_collection(self, csv_file, user):
+        # TODO: Split into two smaller functions
         try:
             url = "https://api.scryfall.com/cards/collection"
             headers = {"Content-Type": "application/json"}
