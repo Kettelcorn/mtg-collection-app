@@ -2,12 +2,17 @@ from ..models import Card
 
 
 class CardRepository:
-    def get_cards_by_collection_and_name(self, collection, card_name):
+    # Get card by collection and name
+    @staticmethod
+    def get_cards_by_collection_and_name(collection, card_name):
         return collection.cards.filter(card_name=card_name)
 
-    def delete_all_cards_by_collection(self, collection):
+    # Delete all cards by collection
+    @staticmethod
+    def delete_all_cards_by_collection(collection):
         collection.cards.all().delete()
 
-    def create_card(self, card_data):
+    # Create a card
+    @staticmethod
+    def create_card(card_data):
         return Card.objects.create(**card_data)
-

@@ -18,6 +18,7 @@ class CollectionService:
         self.card_repository = CardRepository()
         self.user_repository = UserRepository()
 
+    # Get collection details for a user
     def get_collection_details(self, user):
         collection = self.collection_repository.get_collection_by_user_id(user)
         cards = collection.cards.all()
@@ -41,7 +42,8 @@ class CollectionService:
         card_list.insert(0, {"card_count": total_quantity, "total_value": total_value})
         return card_list
 
-    def process_csv_and_update_collection(self, csv_file, user, SCRYFALL_URL):
+    # Process CSV file and update collection#
+    def process_csv_and_update_collection(self, csv_file, user):
         try:
             url = "https://api.scryfall.com/cards/collection"
             headers = {"Content-Type": "application/json"}
@@ -88,7 +90,7 @@ class CollectionService:
             for data in scryfall_data:
                 for selected_card in data.get('data'):
                     name = selected_card.get('name')
-                    id = selected_card.get('id')
+                    scryfall_id = selected_card.get('id')
                     tcgplayer_id = selected_card.get('tcgplayer_id') or 0
                     set_name = selected_card.get('set_name')
                     collector_number = selected_card.get('collector_number')
@@ -128,7 +130,7 @@ class CollectionService:
 
                     card_data = {
                         'card_name': name,
-                        'scryfall_id': id,
+                        'scryfall_id': scryfall_id,
                         'tcg_id': tcgplayer_id,
                         'set': set_name,
                         'collector_number': collector_number,

@@ -1,6 +1,7 @@
 from django.db import models
 
 
+# User model for storing Discord user information
 class User(models.Model):
     discord_id = models.CharField(max_length=255, unique=True)
     discord_username = models.CharField(max_length=255)
@@ -11,6 +12,7 @@ class User(models.Model):
         return self.discord_username
 
 
+# Collection model for storing a user's collection of cards
 class Collection(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_collection')
 
@@ -18,6 +20,7 @@ class Collection(models.Model):
         return f"Collection of {self.user.discord_username}"
 
 
+# Card model for storing card information
 class Card(models.Model):
     card_name = models.CharField(max_length=255, default='Card Name')
     scryfall_id = models.CharField(max_length=255, unique=False, default='0')

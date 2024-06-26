@@ -9,4 +9,3 @@ class CardAdmin(admin.ModelAdmin):
 admin.site.register(User)
 admin.site.register(Collection)
 admin.site.register(Card, CardAdmin)
-

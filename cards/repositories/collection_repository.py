@@ -2,8 +2,12 @@ from ..models import Collection
 
 
 class CollectionRepository:
-    def create_collection(self, user):
+    # Create a collection
+    @staticmethod
+    def create_collection(user):
         return Collection.objects.create(user=user)
 
-    def get_collection_by_user_id(self, user_id):
+    # Get collection by user id
+    @staticmethod
+    def get_collection_by_user_id(user_id):
         return Collection.objects.get(user=user_id)

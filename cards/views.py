@@ -15,8 +15,10 @@ load_dotenv()
 SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 
 
+# Get card data from Scryfall API
 class GetCardView(APIView):
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request):
         card_name = request.query_params.get('name')
         search_type = request.query_params.get('type')
         if card_name:
@@ -34,8 +36,10 @@ class GetCardView(APIView):
             return Response({'error': 'No card name provided'}, status=400)
 
 
+# Get collection data for a user
 class GetCollectionView(APIView):
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request):
         discord_id = request.query_params.get('discord_id')
         if discord_id:
             try:
@@ -51,8 +55,10 @@ class GetCollectionView(APIView):
             return Response({'error': 'No discord_id provided'}, status=400)
 
 
+# Update collection data for a user
 class UpdateCollectionView(APIView):
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request):
         csv_file = request.FILES.get('file')
         action = request.data.get('action')
         discord_id = request.data.get('discord_id')
@@ -62,7 +68,10 @@ class UpdateCollectionView(APIView):
                 user_service = UserService()
                 user = user_service.user_repository.get_user_by_discord_id(discord_id)
                 collection_service = CollectionService()
-                response_data, status_code = collection_service.process_csv_and_update_collection(csv_file, user, SCRYFALL_URL)
+                response_data, status_code = collection_service.process_csv_and_update_collection(
+                    csv_file,
+                    user
+                )
                 return Response(response_data, status=status_code)
             except Exception as e:
                 logger.error(f"Error processing file: {e}")
@@ -71,8 +80,10 @@ class UpdateCollectionView(APIView):
             return Response({'error': 'No file, action, or discord_id provided'}, status=400)
 
 
+# Create a new user
 class CreateUserView(APIView):
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -80,8 +91,9 @@ class CreateUserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Ping endpoint to keep the application awake
 class PingView(APIView):
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post():
         response_data = {'message': 'Data received successfully'}
         return Response(response_data, status=status.HTTP_200_OK)
-
