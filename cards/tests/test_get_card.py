@@ -9,11 +9,13 @@ API_URL = os.getenv('API_URL')
 GET_CARD= os.getenv('GET_CARD')
 
 
+# Test cases for the GetCardView API view
 class GetCardViewTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.url = f"{API_URL}{GET_CARD}"
 
+    # Test case for getting a card with a normal layout
     def test_get_card_normal(self):
         response = self.client.get(self.url, {'name': 'sol ring', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -26,6 +28,7 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    # Test case for getting a card with a double faced layout
     def test_get_card_double_face(self):
         response = self.client.get(self.url, {'name': 'Malakir Rebirth // Malakir Mire', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -38,6 +41,7 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    # Test case for getting a card with a split layout
     def test_get_card_split(self):
         response = self.client.get(self.url, {'name': 'Fire // Ice', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -50,6 +54,7 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    # Test case for getting a card with an adventure layout
     def test_get_card_adventure(self):
         response = self.client.get(self.url, {'name': 'Mosswood Dreadknight // Dread Whispers', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
