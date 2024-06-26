@@ -17,8 +17,7 @@ SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 
 # Get card data from Scryfall API
 class GetCardView(APIView):
-    @staticmethod
-    def get(request):
+    def get(self, request, *args, **kwargs):
         card_name = request.query_params.get('name')
         search_type = request.query_params.get('type')
         if card_name:
@@ -38,8 +37,7 @@ class GetCardView(APIView):
 
 # Get collection data for a user
 class GetCollectionView(APIView):
-    @staticmethod
-    def get(request):
+    def get(self, request, *args, **kwargs):
         discord_id = request.query_params.get('discord_id')
         if discord_id:
             try:
@@ -57,8 +55,7 @@ class GetCollectionView(APIView):
 
 # Update collection data for a user
 class UpdateCollectionView(APIView):
-    @staticmethod
-    def post(request):
+    def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('file')
         action = request.data.get('action')
         discord_id = request.data.get('discord_id')
@@ -82,8 +79,7 @@ class UpdateCollectionView(APIView):
 
 # Create a new user
 class CreateUserView(APIView):
-    @staticmethod
-    def post(request):
+    def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -93,7 +89,6 @@ class CreateUserView(APIView):
 
 # Ping endpoint to keep the application awake
 class PingView(APIView):
-    @staticmethod
-    def post():
+    def post(self, request, *args, **kwargs):
         response_data = {'message': 'Data received successfully'}
         return Response(response_data, status=status.HTTP_200_OK)
