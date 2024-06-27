@@ -67,16 +67,58 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    # Test case for getting a card with a flip layout
+    def test_get_card_flip(self):
+        response = self.client.get(self.url, {'name': 'Bushi Tenderfoot // Kenzo the Hardhearted', 'type': 'card'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('flip', response.data.get('layout'))
+        expected_fields = [
+            'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
+            'finishes', 'tcgplayer_id', 'card_faces', 'related_uris', 'image_uris'
+        ]
+        for field in expected_fields:
+            with self.subTest(field=field):
+                self.assertIn(field, response.data)
+
+    # Test case for getting a card with a meld layout
+    def test_get_card_meld(self):
+        response = self.client.get(self.url, {'name': 'Mishra, Lost to Phyrexia', 'type': 'card'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('meld', response.data.get('layout'))
+        # TODO: Make changes to account for meld cards not having a tcgplayer_id
+        expected_fields = [
+            'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
+            'finishes', 'related_uris', 'image_uris'
+        ]
+        for field in expected_fields:
+            with self.subTest(field=field):
+                self.assertIn(field, response.data)
+
+    def test_get_card_emblem(self):
+        response = self.client.get(self.url, {'name': 'Elspeth, Knight-Errant Emblem', 'type': 'card'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('emblem', response.data.get('layout'))
+        expected_fields = [
+            'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
+            'finishes', 'tcgplayer_id', 'related_uris', 'image_uris'
+        ]
+        for field in expected_fields:
+            with self.subTest(field=field):
+                self.assertIn(field, response.data)
+
+    # Test case for getting a card with an invalid name
     def test_get_card_invalid_name(self):
         response = self.client.get(self.url, {'name': 'invalid card name', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn('error', response.data)
 
+    # Test case for getting a card with no name
     def test_get_card_no_name(self):
         response = self.client.get(self.url, {'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
 
+    # Test case for getting a card with no type
     def test_get_card_no_type(self):
         response = self.client.get(self.url, {'name': 'Sol Ring'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
