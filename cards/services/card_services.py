@@ -30,7 +30,6 @@ class CardService:
             logger.info(f"Found {len(cards)} cards for {user.discord_username}")
             if cards:
                 for card in cards:
-                    # TODO: Mizzix of the Izmagnus not showing up
                     if user.discord_username not in users:
                         users[user.discord_username] = []
                     users[user.discord_username].append({

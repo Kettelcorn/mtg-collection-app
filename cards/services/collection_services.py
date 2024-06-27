@@ -45,31 +45,42 @@ class CollectionService:
     # Process CSV file and update collection#
     def process_csv_and_update_collection(self, csv_file, user):
         # TODO: Split into two smaller functions
+        # Parse CSV and get card info from scryfall (part 1)
         try:
             url = "https://api.scryfall.com/cards/collection"
             headers = {"Content-Type": "application/json"}
             decoded_file = csv_file.read().decode('utf-8').splitlines()
             reader = csv.DictReader(decoded_file)
             card_list = [row for row in reader]
-            logger.info(f"{len(card_list)} cards found")
-            identifiers = []
-            scryfall_data = []
-            value_map = {}
-            count = 0
-            total_quantity = 0
-            total_sent = 0
+            logger.info(f"{len(card_list)} unique cards found")
+            identifiers, scryfall_data = [], []
+            finish_map = {}
+            count, total_quantity, total_sent = 0, 0, 0
 
             for card in card_list:
                 backup_url = "https://api.scryfall.com/cards/"
                 total_quantity += int(card['Quantity'])
                 collector_number = card.get('Card Number') or card.get('Collector number')
                 set_code = card.get('Set Code') or card.get('Set code')
+
                 if 'Product ID' in card:
                     backup_url += f"tcgplayer/{card['Product ID']}"
                 elif 'Scryfall ID' in card:
                     backup_url += f"{card['Scryfall ID']}"
 
-                value_map[f"{set_code}-{collector_number}"] = backup_url
+                finish = None
+                if 'Foil' in card:
+                    finish = card['Foil'].lower()
+                elif 'Printing' in card:
+                    finish = card['Printing'].lower()
+                if finish == 'normal':
+                    finish = 'nonfoil'
+
+                finish_map[f"{set_code}-{collector_number}".upper()] = {
+                    'backup_url': backup_url,
+                    'finish': finish,
+                    'quantity': card['Quantity']
+                }
 
                 identifiers.append({
                     'collector_number': collector_number,
@@ -84,12 +95,20 @@ class CollectionService:
                     if response.status_code == 200:
                         data = response.json()
                         for not_found in data.get('not_found'):
-                            logger.info(f"Card not found: {not_found}")
-                            logger.info(f"Backup URL: {value_map[f'{not_found["set"]}-{not_found["collector_number"]}']}")
-                            backup_response = requests.get(value_map[f"{not_found['set']}-{not_found['collector_number']}"])
+                            card_key = f'{not_found["set"]}-{not_found["collector_number"]}'.upper()
+                            logger.info(f"Card not found: {card_key}")
+                            logger.info(f"Backup URL: {finish_map[card_key]['backup_url']}")
+                            backup_url = finish_map[card_key]['backup_url']
+                            logger.info(f"Backup URL: {backup_url}")
+                            backup_response = requests.get(backup_url)
                             if backup_response.status_code == 200:
                                 logger.info(f"Backup response successful")
                                 backup_data = backup_response.json()
+                                new_key = f"{backup_data.get('set')}-{backup_data.get('collector_number')}".upper()
+                                finish_map[new_key] = {
+                                    'finish': finish_map[card_key]['finish'],
+                                    'quantity': finish_map[card_key]['quantity']
+                                }
                                 data['data'].append(backup_data)
                             else:
                                 logger.error(f"Error fetching card details: {backup_response.json()}")
@@ -102,53 +121,48 @@ class CollectionService:
             logger.info(f"Total sent to Scryfall: {total_sent}")
 
             collection = user.collection
+
+            # TODO: Only have this line of code in updating collection
             self.card_repository.delete_all_cards_by_collection(collection)
 
-            index = 0
+            # Add cards to collection (part 2)
+            error_count = 0
             for data in scryfall_data:
                 for selected_card in data.get('data'):
                     name = selected_card.get('name')
-                    if name == 'Mizzix of the Izmagnus':
-                        logger.info(f"Mizzix found")
-                        logger.info(f"Data: {selected_card}")
                     scryfall_id = selected_card.get('id')
                     tcgplayer_id = selected_card.get('tcgplayer_id') or 0
                     set_name = selected_card.get('set_name')
                     collector_number = selected_card.get('collector_number')
-                    # TODO: Figure out way to keep track of finish for backup cards as the ordering gets messed up
-                    #  with the current implementation (index doesn't match up with the original card list)
-                    finish = None
-                    if 'Foil' in card_list[index]:
-                        if card_list[index]['Foil'] == 'normal':
-                            finish = 'nonfoil'
-                        elif card_list[index]['Foil'] == 'foil':
-                            finish = 'foil'
-                        elif card_list[index]['Foil'] == 'etched':
-                            finish = 'etched'
-                    elif 'Printing' in card_list[index]:
-                        if card_list[index]['Printing'] == 'Normal':
-                            finish = 'nonfoil'
-                        elif card_list[index]['Printing'] == 'Foil':
-                            for finish_option in selected_card.get('finishes'):
-                                if finish_option == 'etched':
-                                    finish = 'etched'
-                                elif finish_option == 'foil':
-                                    finish = 'foil'
-                                    break
-
-                    if finish is None:
-                        finish = 'none'
                     uri = selected_card.get('uri')
+
+                    key = f'{selected_card.get('set')}-{collector_number}'.upper()
+                    finish = finish_map[key]['finish']
+                    quantity = finish_map[key]['quantity']
+
+                    found_finish = None
+                    for finish_option in selected_card.get('finishes'):
+                        if finish_option == finish:
+                            found_finish = finish
+                            break
+                        elif finish_option == 'etched' and finish == 'foil':
+                            found_finish = 'etched'
+                            break
+                    if found_finish is None:
+                        logger.error(f"Finish not found for {name} - {set_name} - {collector_number}")
+                        error_count += 1
+                        continue
+
                     price = None
-                    if finish == 'foil':
-                        price = selected_card.get('prices').get('usd_foil')
-                    elif finish == 'nonfoil':
+                    if finish == 'nonfoil':
                         price = selected_card.get('prices').get('usd')
+                    elif finish == 'foil':
+                        price = selected_card.get('prices').get('usd_foil')
                     elif finish == 'etched':
                         price = selected_card.get('prices').get('usd_etched')
+
                     if price is None:
                         price = Decimal(0.00)
-                    quantity = card_list[index]['Quantity']
 
                     card_data = {
                         'card_name': name,
@@ -163,8 +177,7 @@ class CollectionService:
                         'quantity': quantity
                     }
                     self.card_repository.create_card(card_data)
-                    index += 1
-
+            logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK
 
         except Exception as e:
