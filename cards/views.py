@@ -12,6 +12,7 @@ from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 load_dotenv()
+# TODO: Remove scryfall urls from env file and other non-sensitive data
 SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 
 

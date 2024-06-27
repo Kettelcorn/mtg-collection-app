@@ -54,14 +54,23 @@ class CollectionService:
             logger.info(f"{len(card_list)} cards found")
             identifiers = []
             scryfall_data = []
+            value_map = {}
             count = 0
             total_quantity = 0
             total_sent = 0
 
             for card in card_list:
+                backup_url = "https://api.scryfall.com/cards/"
                 total_quantity += int(card['Quantity'])
                 collector_number = card.get('Card Number') or card.get('Collector number')
                 set_code = card.get('Set Code') or card.get('Set code')
+                if 'Product ID' in card:
+                    backup_url += f"tcgplayer/{card['Product ID']}"
+                elif 'Scryfall ID' in card:
+                    backup_url += f"{card['Scryfall ID']}"
+
+                value_map[f"{set_code}-{collector_number}"] = backup_url
+
                 identifiers.append({
                     'collector_number': collector_number,
                     'set': set_code
@@ -73,13 +82,21 @@ class CollectionService:
                     body = {"identifiers": identifiers}
                     response = requests.post(url, headers=headers, data=json.dumps(body))
                     if response.status_code == 200:
-                        logger.info(f"Card details fetched")
                         data = response.json()
+                        for not_found in data.get('not_found'):
+                            logger.info(f"Card not found: {not_found}")
+                            logger.info(f"Backup URL: {value_map[f'{not_found["set"]}-{not_found["collector_number"]}']}")
+                            backup_response = requests.get(value_map[f"{not_found['set']}-{not_found['collector_number']}"])
+                            if backup_response.status_code == 200:
+                                logger.info(f"Backup response successful")
+                                backup_data = backup_response.json()
+                                data['data'].append(backup_data)
+                            else:
+                                logger.error(f"Error fetching card details: {backup_response.json()}")
                         scryfall_data.append(data)
                     else:
                         logger.error(f"Error fetching card details: {response.json()}")
                     identifiers = []
-                    time.sleep(0.1)
 
             logger.info(f"Total quantity in csv: {total_quantity}")
             logger.info(f"Total sent to Scryfall: {total_sent}")
@@ -91,10 +108,15 @@ class CollectionService:
             for data in scryfall_data:
                 for selected_card in data.get('data'):
                     name = selected_card.get('name')
+                    if name == 'Mizzix of the Izmagnus':
+                        logger.info(f"Mizzix found")
+                        logger.info(f"Data: {selected_card}")
                     scryfall_id = selected_card.get('id')
                     tcgplayer_id = selected_card.get('tcgplayer_id') or 0
                     set_name = selected_card.get('set_name')
                     collector_number = selected_card.get('collector_number')
+                    # TODO: Figure out way to keep track of finish for backup cards as the ordering gets messed up
+                    #  with the current implementation (index doesn't match up with the original card list)
                     finish = None
                     if 'Foil' in card_list[index]:
                         if card_list[index]['Foil'] == 'normal':
@@ -116,7 +138,6 @@ class CollectionService:
 
                     if finish is None:
                         finish = 'none'
-                    logger.info(f"Finish: {finish}")
                     uri = selected_card.get('uri')
                     price = None
                     if finish == 'foil':

@@ -3,14 +3,17 @@ from ..repositories.user_repository import UserRepository
 import requests
 import json
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-# Get card details from scrfall API, and return information about the card and users who own the card
 class CardService:
     def __init__(self):
         self.card_repository = CardRepository()
         self.user_repository = UserRepository()
 
+    # Get card details from scrfall API, and return information about the card and users who own the card
     def fetch_card_details(self, card_name, search_type, scryfall_url):
         params = {
             'fuzzy': card_name
@@ -24,8 +27,10 @@ class CardService:
         for user in self.user_repository.get_all_users():
             collection = user.collection
             cards = self.card_repository.get_cards_by_collection_and_name(collection, card_name)
+            logger.info(f"Found {len(cards)} cards for {user.discord_username}")
             if cards:
                 for card in cards:
+                    # TODO: Mizzix of the Izmagnus not showing up
                     if user.discord_username not in users:
                         users[user.discord_username] = []
                     users[user.discord_username].append({
