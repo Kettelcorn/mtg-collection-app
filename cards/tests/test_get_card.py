@@ -123,4 +123,3 @@ class GetCardViewTestCase(APITestCase):
         response = self.client.get(self.url, {'name': 'Sol Ring'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
-

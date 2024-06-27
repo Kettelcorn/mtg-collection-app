@@ -5,6 +5,7 @@ import json
 from decimal import Decimal
 
 
+# Get card details from scrfall API, and return information about the card and users who own the card
 class CardService:
     def __init__(self):
         self.card_repository = CardRepository()
@@ -18,6 +19,7 @@ class CardService:
         if response.status_code != 200:
             return None, response.status_code
         card_details = response.json()
+        card_name = card_details.get('name')
         users = {}
         for user in self.user_repository.get_all_users():
             collection = user.collection
