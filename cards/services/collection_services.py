@@ -136,7 +136,7 @@ class CollectionService:
                     collector_number = selected_card.get('collector_number')
                     uri = selected_card.get('uri')
 
-                    key = f'{selected_card.get('set')}-{collector_number}'.upper()
+                    key = f"{selected_card.get('set')}-{collector_number}".upper()
                     finish = finish_map[key]['finish']
                     quantity = finish_map[key]['quantity']
 
