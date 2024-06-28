@@ -130,6 +130,9 @@ async def card(interaction: discord.Interaction, name: str):
         user_list = card_data.get('users', [])
         finish = card_data.get('finishes', [])[0]
         await create_embed(interaction, card_data, finish, user_list)
+    else:
+        logging.error(f'Failed to retrieve card: {response.status_code}')
+        await interaction.response.send_message('Failed to retrieve card.')
 
 
 # Command: /get_printing <name>

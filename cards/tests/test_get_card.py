@@ -85,7 +85,6 @@ class GetCardViewTestCase(APITestCase):
         response = self.client.get(self.url, {'name': 'Mishra, Lost to Phyrexia', 'type': 'card'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('meld', response.data.get('layout'))
-        # TODO: Make changes to account for meld cards not having a tcgplayer_id
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
             'finishes', 'related_uris', 'image_uris'

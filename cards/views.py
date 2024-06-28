@@ -88,6 +88,14 @@ class CreateUserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class GetUsersView(APIView):
+    def get(self, request, *args, **kwargs):
+        user_service = UserService()
+        users = user_service.get_all_users()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 # Ping endpoint to keep the application awake
 class PingView(APIView):
     def post(self, request, *args, **kwargs):

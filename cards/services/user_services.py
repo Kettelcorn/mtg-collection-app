@@ -14,3 +14,6 @@ class UserService:
         user.collection = collection
         user.save()
         return user
+
+    def get_all_users(self):
+        return self.user_repository.get_all_users()
