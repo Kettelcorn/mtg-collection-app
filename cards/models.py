@@ -26,6 +26,7 @@ class Card(models.Model):
     scryfall_id = models.CharField(max_length=255, unique=False, default='0')
     tcg_id = models.IntegerField(unique=False, default=0)
     set = models.CharField(max_length=255, default='Set Name')
+    set_code = models.CharField(max_length=10, default='Set Code')
     collector_number = models.CharField(max_length=10, default='0')
     finish = models.CharField(max_length=10, choices=[('foil', 'Foil'), ('nonfoil', 'Nonfoil')], default='nonfoil')
     print_uri = models.URLField(max_length=500)

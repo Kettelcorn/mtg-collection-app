@@ -134,6 +134,7 @@ class CollectionService:
                     scryfall_id = selected_card.get('id')
                     tcgplayer_id = selected_card.get('tcgplayer_id') or 0
                     set_name = selected_card.get('set_name')
+                    set_code = selected_card.get('set')
                     collector_number = selected_card.get('collector_number')
                     uri = selected_card.get('uri')
 
@@ -170,6 +171,7 @@ class CollectionService:
                         'scryfall_id': scryfall_id,
                         'tcg_id': tcgplayer_id,
                         'set': set_name,
+                        'set_code': set_code,
                         'collector_number': collector_number,
                         'finish': finish,
                         'print_uri': uri,
