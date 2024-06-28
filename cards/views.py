@@ -8,11 +8,11 @@ from .services.card_services import CardService
 from .services.collection_services import CollectionService
 from .services.user_services import UserService
 from .serializers import UserSerializer
-from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 load_dotenv()
 # TODO: Remove scryfall urls from env file and other non-sensitive data
+# TODO: Don't pass in scryfall_url, let the service handle it
 SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 
 
