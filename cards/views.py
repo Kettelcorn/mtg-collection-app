@@ -96,6 +96,27 @@ class GetUsersView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class ChangeUsernameView(APIView):
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get('discord_id')
+        new_username = request.data.get('new_username')
+        if discord_id and new_username:
+            user_service = UserService()
+            user = user_service.change_username(discord_id, new_username)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DeleteUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get('discord_id')
+        if discord_id:
+            user_service = UserService()
+            user = user_service.delete_user(discord_id)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 # Ping endpoint to keep the application awake
 class PingView(APIView):
     def post(self, request, *args, **kwargs):
