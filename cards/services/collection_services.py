@@ -91,6 +91,7 @@ class CollectionService:
                     logger.info(f"Identifiers length: {len(identifiers)}")
                     total_sent += len(identifiers)
                     body = {"identifiers": identifiers}
+                    # TODO: Make async requests to improve performance
                     response = requests.post(url, headers=headers, data=json.dumps(body))
                     if response.status_code == 200:
                         data = response.json()
@@ -176,6 +177,7 @@ class CollectionService:
                         'price': price,
                         'quantity': quantity
                     }
+                    # TODO: Look for option do add cards to database in bulk
                     self.card_repository.create_card(card_data)
             logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK

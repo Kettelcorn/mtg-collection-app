@@ -59,6 +59,14 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
             card_face1 = chosen_card.get('card_faces')[0]
             card_face2 = chosen_card.get('card_faces')[1]
 
+    price_key = None
+    if chosen_finish == 'nonfoil':
+        price_key = 'usd'
+    elif chosen_finish == 'foil':
+        price_key = 'usd_foil'
+    elif chosen_finish == 'etched':
+        price_key = 'usd_etched'
+
     embed1 = discord.Embed(title=card_face1.get('name'))
     embed1.set_image(url=card_face1.get('image_uris').get('normal'))
 
@@ -73,7 +81,6 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
                          value=chosen_card.get('set_name'), inline=True)
     embed_main.add_field(name="Released At",
                          value=chosen_card.get('released_at'), inline=True)
-    price_key = 'usd_foil' if chosen_finish == 'foil' else 'usd'
     embed_main.add_field(name="Price (USD)",
                          value=f"${chosen_card.get('prices').get(price_key)}",
                          inline=True)
