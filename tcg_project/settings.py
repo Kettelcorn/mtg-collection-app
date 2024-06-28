@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'rest_framework',
-    'cards',
+    'card_manager',
     'discord_bot',
     'channels',
 ]
@@ -106,7 +106,7 @@ LOGGING = {
             'level': 'ERROR',  # Only log errors to console
             'propagate': False,
         },
-        'cards': {
+        'card_manager': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
             'propagate': True,

@@ -6,7 +6,7 @@ class CardRepository:
     def get_cards_by_collection_and_name(self, collection, card_name):
         return collection.cards.filter(card_name=card_name)
 
-    # Delete all cards by collection
+    # Delete all card_manager by collection
     def delete_all_cards_by_collection(self, collection):
         collection.cards.all().delete()
 

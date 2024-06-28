@@ -249,7 +249,7 @@ async def get_collection(interaction: discord.Interaction):
             embed.add_field(name="Total Value", value=f"${total_value}", inline=True)
             await interaction.response.send_message(embed=embed)
         else:
-            await interaction.response.send_message('No cards found in your collection.')
+            await interaction.response.send_message('No card_manager found in your collection.')
     else:
         await interaction.response.send_message('Failed to retrieve collection.')
 

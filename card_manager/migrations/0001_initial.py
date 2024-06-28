@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('print_uri', models.URLField(max_length=500)),
                 ('price', models.DecimalField(decimal_places=2, default=0.0, max_digits=10)),
                 ('quantity', models.PositiveIntegerField(default=1)),
-                ('collection', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cards', to='cards.collection')),
+                ('collection', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='card_manager', to='card_manager.collection')),
             ],
         ),
         migrations.CreateModel(
@@ -40,12 +40,12 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('discord_id', models.CharField(max_length=255, unique=True)),
                 ('discord_username', models.CharField(max_length=255)),
-                ('collection', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='user_collection', to='cards.collection')),
+                ('collection', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='user_collection', to='card_manager.collection')),
             ],
         ),
         migrations.AddField(
             model_name='collection',
             name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user_collection', to='cards.user'),
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user_collection', to='card_manager.user'),
         ),
     ]

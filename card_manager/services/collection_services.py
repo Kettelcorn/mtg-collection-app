@@ -58,7 +58,7 @@ class CollectionService:
             decoded_file = csv_file.read().decode('utf-8').splitlines()
             reader = csv.DictReader(decoded_file)
             card_list = [row for row in reader]
-            logger.info(f"{len(card_list)} unique cards found")
+            logger.info(f"{len(card_list)} unique card_manager found")
             identifiers, scryfall_data = [], []
             finish_map = {}
             count, total_quantity, total_sent = 0, 0, 0
@@ -187,7 +187,7 @@ class CollectionService:
                         'price': price,
                         'quantity': quantity
                     }
-                    # TODO: Look for option do add cards to database in bulk
+                    # TODO: Look for option do add card_manager to database in bulk
                     self.card_repository.create_card(card_data)
             logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK

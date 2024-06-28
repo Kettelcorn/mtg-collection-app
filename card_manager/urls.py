@@ -5,7 +5,7 @@ from .views.card_views import GetCardView
 from .views.utility_views import PingView
 
 
-# URL patterns for the cards app
+# URL patterns for the card_manager app
 urlpatterns = [
     # User views
     path('create_user/', CreateUserView.as_view(), name='create-user'),

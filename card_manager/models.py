@@ -12,7 +12,7 @@ class User(models.Model):
         return self.discord_username
 
 
-# Collection model for storing a user's collection of cards
+# Collection model for storing a user's collection of card_manager
 class Collection(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_collection')
 
@@ -30,7 +30,7 @@ class Card(models.Model):
     collector_number = models.CharField(max_length=10, default='0')
     finish = models.CharField(max_length=10, choices=[('foil', 'Foil'), ('nonfoil', 'Nonfoil')], default='nonfoil')
     print_uri = models.URLField(max_length=500)
-    collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='cards')
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='card_manager')
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     quantity = models.PositiveIntegerField(default=1)
 
