@@ -61,15 +61,15 @@ class UpdateCollectionView(APIView):
         action = request.data.get('action')
         discord_id = request.data.get('discord_id')
 
-        if csv_file and action and discord_id:
+        if csv_file and discord_id:
             try:
                 user_service = UserService()
                 user = user_service.user_repository.get_user_by_discord_id(discord_id)
                 collection_service = CollectionService()
-                response_data, status_code = collection_service.process_csv_and_update_collection(
-                    csv_file,
-                    user
-                )
+                scryfall_data, finish_map = collection_service.process_csv(csv_file)
+                if action == 'update':
+                    collection_service.clear_collection(user)
+                response_data, status_code = collection_service.add_collection(user, scryfall_data, finish_map)
                 return Response(response_data, status=status_code)
             except Exception as e:
                 logger.error(f"Error processing file: {e}")

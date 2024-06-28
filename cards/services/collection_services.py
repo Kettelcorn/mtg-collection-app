@@ -42,10 +42,16 @@ class CollectionService:
         card_list.insert(0, {"card_count": total_quantity, "total_value": total_value})
         return card_list
 
-    # Process CSV file and update collection#
-    def process_csv_and_update_collection(self, csv_file, user):
-        # TODO: Split into two smaller functions
-        # Parse CSV and get card info from scryfall (part 1)
+    def clear_collection(self, user):
+        try:
+            collection = self.collection_repository.clear_collection(user)
+            return {'message': 'Collection cleared successfully'}, status.HTTP_200_OK
+        except Exception as e:
+            logger.error(f"Error clearing collection: {e}")
+            return {'error': 'An error occurred'}, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    # Parse CSV and get card info from scryfall
+    def process_csv(self, csv_file):
         try:
             url = "https://api.scryfall.com/cards/collection"
             headers = {"Content-Type": "application/json"}
@@ -120,13 +126,15 @@ class CollectionService:
 
             logger.info(f"Total quantity in csv: {total_quantity}")
             logger.info(f"Total sent to Scryfall: {total_sent}")
+            return scryfall_data, finish_map
 
+        except Exception as e:
+            logger.error(f"Error processing file: {e}")
+            return None, None
+
+    def add_collection(self, user, scryfall_data, finish_map):
+        try:
             collection = user.collection
-
-            # TODO: Only have this line of code in updating collection
-            self.card_repository.delete_all_cards_by_collection(collection)
-
-            # Add cards to collection (part 2)
             error_count = 0
             for data in scryfall_data:
                 for selected_card in data.get('data'):
@@ -183,7 +191,6 @@ class CollectionService:
                     self.card_repository.create_card(card_data)
             logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK
-
         except Exception as e:
-            logger.error(f"Error processing file: {e}")
+            logger.error(f"Error updating collection: {e}")
             return {'error': 'An error occurred'}, status.HTTP_500_INTERNAL_SERVER_ERROR
