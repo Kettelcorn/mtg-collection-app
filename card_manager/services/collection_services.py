@@ -42,6 +42,7 @@ class CollectionService:
         card_list.insert(0, {"card_count": total_quantity, "total_value": total_value})
         return card_list
 
+    # Clear all cards from a user's collection
     def clear_collection(self, user):
         try:
             collection = self.collection_repository.clear_collection(user)
@@ -132,10 +133,12 @@ class CollectionService:
             logger.error(f"Error processing file: {e}")
             return None, None
 
+    # Add cards to collection
     def add_collection(self, user, scryfall_data, finish_map):
         try:
             collection = user.collection
             error_count = 0
+            all_cards = []
             for data in scryfall_data:
                 for selected_card in data.get('data'):
                     name = selected_card.get('name')
@@ -187,8 +190,10 @@ class CollectionService:
                         'price': price,
                         'quantity': quantity
                     }
+                    all_cards.append(card_data)
                     # TODO: Look for option do add card_manager to database in bulk
-                    self.card_repository.create_card(card_data)
+                    # self.card_repository.create_card(card_data)
+            self.card_repository.create_cards(all_cards)
             logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK
         except Exception as e:

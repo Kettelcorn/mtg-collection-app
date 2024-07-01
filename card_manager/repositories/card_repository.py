@@ -2,6 +2,14 @@ from ..models import Card
 
 
 class CardRepository:
+    # Create a card
+    def create_card(self, card_data):
+        return Card.objects.create(**card_data)
+
+    def create_cards(self, all_cards):
+        objects_to_create = [Card(**card_data) for card_data in all_cards]
+        return Card.objects.bulk_create(objects_to_create)
+
     # Get card by collection and name
     def get_cards_by_collection_and_name(self, collection, card_name):
         return collection.cards.filter(card_name=card_name)
@@ -10,15 +18,11 @@ class CardRepository:
     def get_card_by_tcg_id_and_finish(self, tcg_id, finish):
         return Card.objects.get(tcg_id=tcg_id, finish=finish)
 
-    # Delete all cards by collection
-    def delete_all_cards_by_collection(self, collection):
-        collection.cards.all().delete()
-
-    # Create a card
-    def create_card(self, card_data):
-        return Card.objects.create(**card_data)
-
     # Update the price of a card
     def update_card_price(self, card, price):
         card.price = price
         card.save()
+
+    def delete_card(self, card):
+        card.delete()
+        return card

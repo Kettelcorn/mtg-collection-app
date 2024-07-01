@@ -15,11 +15,14 @@ class UserService:
         user.save()
         return user
 
+    # Get all users
     def get_all_users(self):
         return self.user_repository.get_all_users()
 
+    # Change the username of a user
     def change_username(self, discord_id, new_username):
         return self.user_repository.change_username(discord_id, new_username)
 
+    # Delete a user
     def delete_user(self, discord_id):
         return self.user_repository.delete_user(discord_id)
