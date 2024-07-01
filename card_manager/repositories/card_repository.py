@@ -1,5 +1,7 @@
 from ..models import Card
+import logging
 
+logger = logging.getLogger(__name__)
 
 class CardRepository:
     # Create a card
@@ -7,8 +9,13 @@ class CardRepository:
         return Card.objects.create(**card_data)
 
     def create_cards(self, all_cards):
-        objects_to_create = [Card(**card_data) for card_data in all_cards]
-        return Card.objects.bulk_create(objects_to_create)
+        try:
+            objects_to_create = [Card(**card_data) for card_data in all_cards]
+            logger.info(f"Creating {len(objects_to_create)} cards")
+            return Card.objects.bulk_create(objects_to_create)
+        except Exception as e:
+            logger.error(f"Error creating cards: {e}")
+            return None
 
     # Get card by collection and name
     def get_cards_by_collection_and_name(self, collection, card_name):
