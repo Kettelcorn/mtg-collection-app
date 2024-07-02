@@ -193,7 +193,7 @@ class CollectionService:
                     all_cards.append(card_data)
                     # TODO: Look for option do add card_manager to database in bulk
                     # self.card_repository.create_card(card_data)
-            self.card_repository.create_cards(all_cards)
+            self.card_repository.create_cards(all_cards, user.collection)
             logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK
         except Exception as e:

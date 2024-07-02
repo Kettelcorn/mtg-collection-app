@@ -5,11 +5,13 @@ logger = logging.getLogger(__name__)
 
 class CardRepository:
     # Create a card
-    def create_card(self, card_data):
-        return Card.objects.create(**card_data)
+    def create_card(self, card_data, collection):
+        return Card.objects.create(**card_data, collection=collection)
 
-    def create_cards(self, all_cards):
+    def create_cards(self, all_cards, collection):
         try:
+            for card_data in all_cards:
+                card_data['collection'] = collection
             objects_to_create = [Card(**card_data) for card_data in all_cards]
             logger.info(f"Creating {len(objects_to_create)} cards")
             return Card.objects.bulk_create(objects_to_create)
