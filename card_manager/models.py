@@ -5,8 +5,6 @@ from django.db import models
 class User(models.Model):
     discord_id = models.CharField(max_length=255, unique=True)
     discord_username = models.CharField(max_length=255)
-    collection = models.OneToOneField('Collection', on_delete=models.CASCADE,
-                                      null=True, blank=True, related_name='collection')
 
     def __str__(self):
         return self.discord_username
@@ -14,7 +12,7 @@ class User(models.Model):
 
 # Collection model for storing a user's collection of cards
 class Collection(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_collection')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='collections')
     collection_name = models.CharField(max_length=255, default='collection_name')
 
     def __str__(self):

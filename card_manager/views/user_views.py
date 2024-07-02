@@ -10,11 +10,17 @@ from decimal import Decimal
 # Create a new user
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+        discord_id = request.data.get('discord_id')
+        discord_username = request.data.get('discord_username')
+        if discord_id and discord_username:
+            user_service = UserService()
+            if user_service.get_user_by_discord_id(discord_id):
+                return Response({'error': 'User already exists'}, status=400)
+            user = user_service.create_user(discord_id, discord_username)
+            serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'No discord_id or discord_username provided'}, status=400)
 
 
 class GetUsersView(APIView):

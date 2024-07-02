@@ -3,13 +3,16 @@ from ..models import User
 
 class UserRepository:
     # Create a user
-    def create_user(self, validated_data):
-        return User.objects.create(**validated_data)
+    def create_user(self, discord_id, discord_username):
+        return User.objects.create(discord_id=discord_id, discord_username=discord_username)
 
     # Get user by discord id
     def get_user_by_discord_id(self, discord_id):
+        try:
         # TODO: Change logic to be able to work with discord or user id
-        return User.objects.get(discord_id=discord_id)
+            return User.objects.get(discord_id=discord_id)
+        except User.DoesNotExist:
+            return None
 
     # Get all users
     def get_all_users(self):

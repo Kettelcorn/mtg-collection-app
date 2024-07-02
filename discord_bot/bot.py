@@ -230,15 +230,15 @@ async def create_user(interaction: discord.Interaction):
     response = requests.post(f"{API_URL}{CREATE_USER}", json=data)
     if response.status_code == 201:
         await interaction.response.send_message('User created successfully!')
-    else:
-        await interaction.response.send_message('Failed to create user.')
+    elif response.status_code == 400:
+        await interaction.response.send_message(response.json()['error'])
 
 
 # Command: /delete_user
 @bot.tree.command(name='delete_user', description='Delete a user')
 async def delete_user(interaction: discord.Interaction):
     user_id = interaction.user.id
-    response = requests.post(f"{API_URL}{DELETE_USER}", json={'discord_id': user_id})
+    response = requests.post(f"{API_URL}/api/delete_user/", json={'discord_id': user_id})
     if response.status_code == 200:
         await interaction.response.send_message('User deleted successfully!')
     else:

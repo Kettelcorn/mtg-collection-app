@@ -1,6 +1,6 @@
 from django.urls import path
 from .views.user_views import CreateUserView, GetUsersView, ChangeUsernameView, DeleteUserView
-from .views.collection_views import CreateCollectionView, GetCollectionView, UpdateCollectionView, DeleteCollectionView
+from .views.collection_views import CreateCollectionView, GetCollectionView, GetCollectionsView, UpdateCollectionView, DeleteCollectionView
 from .views.card_views import GetCardView
 from .views.utility_views import PingView
 
@@ -14,8 +14,11 @@ urlpatterns = [
     path('delete_user/', DeleteUserView.as_view(), name='delete-user'),
 
     # Collection views
+    path('create_collection/', CreateCollectionView.as_view(), name='create-collection'),
     path('get_collection/', GetCollectionView.as_view(), name='get-collection'),
+    path('get_collections/', GetCollectionsView.as_view(), name='get-collection'),
     path('update_collection/', UpdateCollectionView.as_view(), name='update-collection'),
+    path('delete_collection/', DeleteCollectionView.as_view(), name='delete-collection'),
 
     # Card views
     path('get_card/', GetCardView.as_view(), name='get-card'),

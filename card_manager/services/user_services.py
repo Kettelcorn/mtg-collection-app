@@ -8,8 +8,8 @@ class UserService:
         self.collection_repository = CollectionRepository()
 
     # Create a new user with a collection
-    def create_user(self, validated_data):
-        user = self.user_repository.create_user(validated_data)
+    def create_user(self, discord_id, discord_username):
+        user = self.user_repository.create_user(discord_id, discord_username)
         user.save()
         return user
 

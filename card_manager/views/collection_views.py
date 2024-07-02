@@ -27,7 +27,26 @@ class CreateCollectionView(APIView):
             return Response({'error': 'No discord_id or collection_name provided'}, status=400)
 
 
-# Get collection data for a user
+# Get collection data for a user by collection name
+class GetCollectionView(APIView):
+    def get(self, request, *args, **kwargs):
+        discord_id = request.query_params.get('discord_id')
+        collection_name = request.query_params.get('collection_name')
+        if discord_id and collection_name:
+            try:
+                user_service = UserService()
+                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                collection_service = CollectionService()
+                card_list = collection_service.get_collection_by_name(user, collection_name)
+                return Response(card_list, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"Error fetching collection: {e}")
+                return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({'error': 'No discord_id or collection_name provided'}, status=400)
+
+
+# Get all collection data for a user
 class GetCollectionsView(APIView):
     def get(self, request, *args, **kwargs):
         discord_id = request.query_params.get('discord_id')
@@ -36,7 +55,7 @@ class GetCollectionsView(APIView):
                 user_service = UserService()
                 user = user_service.user_repository.get_user_by_discord_id(discord_id)
                 collection_service = CollectionService()
-                card_list = collection_service.get_collection_details(user)
+                card_list = collection_service.get_all_collections(user)
                 return Response(card_list, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Error fetching collection: {e}")

@@ -27,9 +27,8 @@ class CollectionService:
             logger.error(f"Error creating collection: {e}")
             return {'error': 'An error occurred'}, status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    # Get collection details for a user
-    def get_collection_details(self, user, collection_name):
-        collection = self.collection_repository.get_collection_by_name(user, collection_name)
+    # Get cards from a collection
+    def get_cards(self, collection):
         cards = collection.cards.all()
         card_list = []
         total_value = Decimal(0.00)
@@ -51,6 +50,11 @@ class CollectionService:
         card_list.insert(0, {"card_count": total_quantity, "total_value": total_value})
         return card_list
 
+    # Get collection details for a user
+    def get_collection_by_name(self, user, collection_name):
+        collection = self.collection_repository.get_collection_by_name(user, collection_name)
+        return self.get_cards(collection)
+
     # Get all collections for a user
     def get_all_collections(self, user):
         collections = self.collection_repository.get_collections_by_user(user)
@@ -58,7 +62,7 @@ class CollectionService:
         for collection in collections:
             collection_list.append({
                 'collection_name': collection.collection_name,
-                'collection_id': collection.id
+                'cards': self.get_cards(collection)
             })
         return collection_list
 
