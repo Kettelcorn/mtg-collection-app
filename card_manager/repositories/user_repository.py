@@ -9,14 +9,17 @@ class UserRepository:
     # Get user by discord id
     def get_user_by_discord_id(self, discord_id):
         try:
-        # TODO: Change logic to be able to work with discord or user id
+            # TODO: Change logic to be able to work with discord or user id
             return User.objects.get(discord_id=discord_id)
         except User.DoesNotExist:
             return None
 
     # Get all users
     def get_all_users(self):
-        return User.objects.all()
+        try:
+            return User.objects.all()
+        except User.DoesNotExist:
+            return None
 
     # Change the username of a user
     def change_username(self, discord_id, new_username):
