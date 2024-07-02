@@ -43,4 +43,4 @@ jobs:
           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
-          python manage.py test
+          python manage.py test --keepdb
