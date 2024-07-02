@@ -48,3 +48,22 @@ class UpdateCollectionView(APIView):
                 return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'error': 'No file, action, or discord_id provided'}, status=400)
+
+
+# Delete collection data for a user
+class DeleteCollectionView(APIView):
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get('discord_id')
+        if discord_id:
+            try:
+                user_service = UserService()
+                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                collection_service = CollectionService()
+                response_data, status_code = collection_service.clear_collection(user)
+                return Response(response_data, status=status_code)
+            except Exception as e:
+                logger.error(f"Error clearing collection: {e}")
+                return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({'error': 'No discord_id provided'}, status=400)
+
