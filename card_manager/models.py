@@ -15,6 +15,7 @@ class User(models.Model):
 # Collection model for storing a user's collection of cards
 class Collection(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_collection')
+    collection_name = models.CharField(max_length=255, default='collection_name')
 
     def __str__(self):
         return f"Collection of {self.user.discord_username}"
