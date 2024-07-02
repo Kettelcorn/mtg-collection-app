@@ -8,8 +8,27 @@ from ..services.user_services import UserService
 logger = logging.getLogger(__name__)
 
 
+# Create a collection for a user
+class CreateCollectionView(APIView):
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get('discord_id')
+        collection_name = request.data.get('collection_name')
+        if discord_id and collection_name:
+            try:
+                user_service = UserService()
+                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                collection_service = CollectionService()
+                response_data, status_code = collection_service.create_collection(user, collection_name)
+                return Response(response_data, status=status_code)
+            except Exception as e:
+                logger.error(f"Error creating collection: {e}")
+                return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({'error': 'No discord_id or collection_name provided'}, status=400)
+
+
 # Get collection data for a user
-class GetCollectionView(APIView):
+class GetCollectionsView(APIView):
     def get(self, request, *args, **kwargs):
         discord_id = request.query_params.get('discord_id')
         if discord_id:

@@ -8,16 +8,18 @@ class UserService:
         self.collection_repository = CollectionRepository()
 
     # Create a new user with a collection
-    def create_user_with_collection(self, validated_data):
+    def create_user(self, validated_data):
         user = self.user_repository.create_user(validated_data)
-        collection = self.collection_repository.create_collection(user)
-        user.collection = collection
         user.save()
         return user
 
     # Get all users
     def get_all_users(self):
         return self.user_repository.get_all_users()
+
+    # Get a user by Discord ID
+    def get_user_by_discord_id(self, discord_id):
+        return self.user_repository.get_user_by_discord_id(discord_id)
 
     # Change the username of a user
     def change_username(self, discord_id, new_username):

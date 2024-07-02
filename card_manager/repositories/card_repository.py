@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class CardRepository:
     # Create a card
     def create_card(self, card_data, collection):

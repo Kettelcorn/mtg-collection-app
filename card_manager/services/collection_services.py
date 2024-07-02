@@ -18,9 +18,18 @@ class CollectionService:
         self.card_repository = CardRepository()
         self.user_repository = UserRepository()
 
+    # Create a collection
+    def create_collection(self, user, collection_name):
+        try:
+            collection = self.collection_repository.create_collection(user, collection_name)
+            return {'message': 'Collection created successfully'}, status.HTTP_201_CREATED
+        except Exception as e:
+            logger.error(f"Error creating collection: {e}")
+            return {'error': 'An error occurred'}, status.HTTP_500_INTERNAL_SERVER_ERROR
+
     # Get collection details for a user
-    def get_collection_details(self, user):
-        collection = self.collection_repository.get_collection_by_user_id(user)
+    def get_collection_details(self, user, collection_name):
+        collection = self.collection_repository.get_collection_by_name(user, collection_name)
         cards = collection.cards.all()
         card_list = []
         total_value = Decimal(0.00)
@@ -41,6 +50,17 @@ class CollectionService:
             total_quantity += card.quantity
         card_list.insert(0, {"card_count": total_quantity, "total_value": total_value})
         return card_list
+
+    # Get all collections for a user
+    def get_all_collections(self, user):
+        collections = self.collection_repository.get_collections_by_user(user)
+        collection_list = []
+        for collection in collections:
+            collection_list.append({
+                'collection_name': collection.collection_name,
+                'collection_id': collection.id
+            })
+        return collection_list
 
     # Clear all cards from a user's collection
     def clear_collection(self, user):

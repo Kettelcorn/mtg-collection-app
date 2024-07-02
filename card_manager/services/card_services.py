@@ -1,5 +1,6 @@
 from ..repositories.card_repository import CardRepository
 from ..repositories.user_repository import UserRepository
+from ..repositories.collection_repository import CollectionRepository
 import requests
 import json
 from decimal import Decimal
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 class CardService:
     def __init__(self):
         self.card_repository = CardRepository()
+        self.collection_repository = CollectionRepository()
         self.user_repository = UserRepository()
 
     # Get card details from scrfall API, and return information about the card and users who own the card
@@ -25,22 +27,23 @@ class CardService:
         card_name = card_details.get('name')
         users = {}
         for user in self.user_repository.get_all_users():
-            collection = user.collection
-            cards = self.card_repository.get_cards_by_collection_and_name(collection, card_name)
-            logger.info(f"Found {len(cards)} cards for {user.discord_username}")
-            if cards:
-                for card in cards:
-                    if user.discord_username not in users:
-                        users[user.discord_username] = []
-                    users[user.discord_username].append({
-                        "username": user.discord_username,
-                        "set": card.set,
-                        "collector_number": card.collector_number,
-                        "finish": card.finish,
-                        "price": card.price,
-                        "tcg_id": card.tcg_id,
-                        "quantity": card.quantity
-                    })
+            collections = self.collection_repository.get_collections_by_user_name(user.id)
+            for collection in collections:
+                cards = self.card_repository.get_cards_by_collection_and_name(collection, card_name)
+                logger.info(f"Found {len(cards)} cards for {user.discord_username}")
+                if cards:
+                    for card in cards:
+                        if user.discord_username not in users:
+                            users[user.discord_username] = []
+                        users[user.discord_username].append({
+                            "username": user.discord_username,
+                            "set": card.set,
+                            "collector_number": card.collector_number,
+                            "finish": card.finish,
+                            "price": card.price,
+                            "tcg_id": card.tcg_id,
+                            "quantity": card.quantity
+                        })
         card_details['users'] = users
         if search_type == 'printing':
             print_search_uri = card_details.get('prints_search_uri')
