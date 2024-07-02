@@ -37,5 +37,10 @@ jobs:
           CREATE_USER: ${{ secrets.CREATE_USER }}
           SCRYFALL_URL: ${{ secrets.SCRYFALL_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
           python manage.py test
