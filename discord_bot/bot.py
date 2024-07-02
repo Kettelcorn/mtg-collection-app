@@ -234,6 +234,17 @@ async def create_user(interaction: discord.Interaction):
         await interaction.response.send_message('Failed to create user.')
 
 
+# Command: /delete_user
+@bot.tree.command(name='delete_user', description='Delete a user')
+async def delete_user(interaction: discord.Interaction):
+    user_id = interaction.user.id
+    response = requests.post(f"{API_URL}{DELETE_USER}", json={'discord_id': user_id})
+    if response.status_code == 200:
+        await interaction.response.send_message('User deleted successfully!')
+    else:
+        await interaction.response.send_message('Failed to delete user.')
+
+
 # Command: /get_collection
 @bot.tree.command(name='get_collection', description='Get your collection')
 async def get_collection(interaction: discord.Interaction):

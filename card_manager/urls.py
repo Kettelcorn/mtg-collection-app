@@ -1,6 +1,6 @@
 from django.urls import path
-from .views.user_views import GetUsersView, ChangeUsernameView, DeleteUserView, CreateUserView
-from .views.collection_views import GetCollectionView, UpdateCollectionView
+from .views.user_views import CreateUserView, GetUsersView, ChangeUsernameView, DeleteUserView
+from .views.collection_views import CreateCollectionView, GetCollectionView, UpdateCollectionView, DeleteCollectionView
 from .views.card_views import GetCardView
 from .views.utility_views import PingView
 
