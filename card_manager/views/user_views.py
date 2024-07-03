@@ -4,7 +4,7 @@ from rest_framework import status
 import logging
 from ..services.user_services import UserService
 from ..serializers import UserSerializer
-from decimal import Decimal
+from django.contrib.auth import authenticate
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +53,19 @@ class DeleteUserView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         discord_id = request.data.get('discord_id')
-        if discord_id:
-            user_service = UserService()
-            user = user_service.get_user_by_discord_id(discord_id)
-            if user:
-                # TODO: Add function to delete user based on discord id
-                user_service.delete_user(username)
-                return Response({'message': 'User deleted'}, status=status.HTTP_200_OK)
+        user = authenticate(username=username, password=password)
+        if user:
+            if discord_id:
+                user_service = UserService()
+                user = user_service.get_user_by_discord_id(discord_id)
+                if user:
+                    user_service.delete_user(username)
+                    return Response({'message': 'User deleted'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
             else:
-                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            user_service = UserService()
-            user = user_service.authenticate_user(username, password)
+                # TODO: Put logic for users with no discord_id here
+                return Response({'error': 'No discord_id provided'}, status=status.HTTP_400_BAD_REQUEST)
 
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

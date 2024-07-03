@@ -238,9 +238,13 @@ async def create_user(interaction: discord.Interaction, password: str):
 
 # Command: /delete_user
 @bot.tree.command(name='delete_user', description='Delete a user')
-async def delete_user(interaction: discord.Interaction):
-    user_id = interaction.user.id
-    response = requests.post(f"{API_URL}/api/delete_user/", json={'discord_id': user_id})
+async def delete_user(interaction: discord.Interaction, password: str):
+    data = {
+        'username': interaction.user.name,
+        'password':  password,
+        'discord_id': interaction.user.id,
+    }
+    response = requests.post(f"{API_URL}/api/delete_user/", json=data)
     if response.status_code == 200:
         await interaction.response.send_message('User deleted successfully!')
     else:
