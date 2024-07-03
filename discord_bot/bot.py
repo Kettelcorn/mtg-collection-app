@@ -284,17 +284,36 @@ async def delete_user(interaction: discord.Interaction, password: str):
         await interaction.response.send_message('Failed to delete user.')
 
 
+# Command: /create_collection
+@bot.tree.command(name='create_collection', description='Create a new collection')
+async def create_collection(interaction: discord.Interaction, collection_name: str):
+    username = interaction.user.name
+    data = {
+        'username': username,
+        'collection_name': collection_name
+    }
+    response = requests.post(f"{API_URL}/api/create_collection/", json=data)
+    if response.status_code == 201:
+        await interaction.response.send_message('Collection created successfully!')
+    else:
+        await interaction.response.send_message('Failed to create collection.')
+
+
 # Command: /get_collection
 @bot.tree.command(name='get_collection', description='Get your collection')
-async def get_collection(interaction: discord.Interaction):
-    user_id = interaction.user.id
-    response = requests.get(f"{API_URL}{GET_COLLECTION}", params={'discord_id': user_id})
+async def get_collection(interaction: discord.Interaction, collection_name: str):
+    username = interaction.user.name
+    data = {
+        'username': username,
+        'collection_name': collection_name
+    }
+    response = requests.get(f"{API_URL}{GET_COLLECTION}", json=data)
     if response.status_code == 200:
         collection = response.json()
         if collection:
             card_count = collection[0]['card_count']
             total_value = collection[0]['total_value']
-            embed = discord.Embed(title=f"{interaction.user.name}'s Collection")
+            embed = discord.Embed(title=f"{interaction.user.name}'s {collection_name} Collection")
             embed.add_field(name="Card Count", value=card_count, inline=True)
             embed.add_field(name="Total Value", value=f"${total_value}", inline=True)
             await interaction.response.send_message(embed=embed)
@@ -304,12 +323,46 @@ async def get_collection(interaction: discord.Interaction):
         await interaction.response.send_message('Failed to retrieve collection.')
 
 
-# Command: /update_collection
-@bot.tree.command(name="update_collection", description="Upload a CSV file to update your collection")
-async def upload(interaction: discord.Interaction):
+# Command: /show_collections
+@bot.tree.command(name='show_collections', description='Show all collections for a user')
+async def show_collections(interaction: discord.Interaction):
+    username = interaction.user.name
+    data = {
+        'username': username
+    }
+    response = requests.get(f"{API_URL}/api/get_collections/", json=data)
+    if response.status_code == 200:
+        collections = response.json()
+        output = "Collections:\n"
+        for collection in collections:
+            output += f"**{collection['collection_name']}**\n"
+        await interaction.response.send_message(output)
+    else:
+        await interaction.response.send_message('Failed to retrieve collections.')
+
+
+# Command: /add_to_collection
+@bot.tree.command(name='add_to_collection', description='Add a card to your collection')
+async def add(interaction: discord.Interaction, collection_name: str):
     await interaction.response.send_message("Please reply to this message with your CSV file attached.")
     message = await interaction.original_response()
-    prompt_message_ids[interaction.user.id] = message.id
+    prompt_message_ids[interaction.user.id] = {
+        'message_id': message.id,
+        'collection_name': collection_name,
+        'action': 'add'
+    }
+
+
+# Command: /update_collection
+@bot.tree.command(name="update_collection", description="Upload a CSV file to update your collection")
+async def upload(interaction: discord.Interaction, collection_name: str):
+    await interaction.response.send_message("Please reply to this message with your CSV file attached.")
+    message = await interaction.original_response()
+    prompt_message_ids[interaction.user.id] = {
+        'message_id': message.id,
+        'collection_name': collection_name,
+        'action': 'update'
+    }
 
 
 # Event listener for when a message is sent
@@ -320,7 +373,7 @@ async def on_message(message):
     if user_id in prompt_message_ids:
         if message.attachments:
             if message.reference and message.reference.message_id:
-                if message.reference.message_id == prompt_message_ids[user_id]:
+                if message.reference.message_id == prompt_message_ids[user_id]['message_id']:
                     for attachment in message.attachments:
                         if attachment.filename.endswith('.csv'):
                             async with aiohttp.ClientSession() as session:
@@ -330,8 +383,10 @@ async def on_message(message):
                                         form = aiohttp.FormData()
                                         form.add_field('file', data,
                                                        filename=attachment.filename, content_type='text/csv')
-                                        form.add_field('action', 'update')
-                                        form.add_field('discord_id', str(user_id))
+                                        form.add_field('action', prompt_message_ids[user_id]['action'])
+                                        form.add_field('username', message.author.name)
+                                        form.add_field('collection_name',
+                                                       prompt_message_ids[user_id]['collection_name'])
 
                                         async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
                                                                 data=form) as api_response:
@@ -343,6 +398,21 @@ async def on_message(message):
                                                     f"Failed to upload CSV file '{attachment.filename}'")
 
                             del prompt_message_ids[user_id]
+
+
+# Command: Delete a user's collection
+@bot.tree.command(name='delete_collection', description='Delete a collection')
+async def delete_collection(interaction: discord.Interaction, collection_name: str):
+    username = interaction.user.name
+    data = {
+        'username': username,
+        'collection_name': collection_name
+    }
+    response = requests.post(f"{API_URL}/api/delete_collection/", json=data)
+    if response.status_code == 200:
+        await interaction.response.send_message('Collection deleted successfully!')
+    else:
+        await interaction.response.send_message('Failed to delete collection.')
 
 
 # Command: /hello

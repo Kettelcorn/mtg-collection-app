@@ -57,7 +57,7 @@ class CollectionService:
 
     # Get all collections for a user
     def get_all_collections(self, user):
-        collections = self.collection_repository.get_collections_by_user(user)
+        collections = self.collection_repository.get_all_collections_by_user(user)
         collection_list = []
         for collection in collections:
             collection_list.append({
@@ -222,4 +222,13 @@ class CollectionService:
             return {'message': 'Data received successfully'}, status.HTTP_200_OK
         except Exception as e:
             logger.error(f"Error updating collection: {e}")
+            return {'error': 'An error occurred'}, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        # Delelete a collection
+    def delete_collection(self, user, collection_name):
+        try:
+            collection = self.collection_repository.delete_collection(user, collection_name)
+            return {'message': 'Collection cleared successfully'}, status.HTTP_200_OK
+        except Exception as e:
+            logger.error(f"Error clearing collection: {e}")
             return {'error': 'An error occurred'}, status.HTTP_500_INTERNAL_SERVER_ERROR

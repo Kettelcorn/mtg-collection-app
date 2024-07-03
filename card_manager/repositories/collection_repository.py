@@ -1,3 +1,5 @@
+import logging
+
 from ..models import Collection
 
 
@@ -7,7 +9,7 @@ class CollectionRepository:
         return Collection.objects.create(user=user, collection_name=collection_name)
 
     # Get collection by user id
-    def get_collection_by_collection_name(self, user, collection_name):
+    def get_collection_by_name(self, user, collection_name):
         return Collection.objects.get(user=user, collection_name=collection_name)
 
     # Get all collection for a user
@@ -18,4 +20,10 @@ class CollectionRepository:
     def clear_collection(self, user, collection_name):
         collection = user.collections.get(collection_name=collection_name)
         collection.cards.all().delete()
+        return collection
+
+    def delete_collection(self, user, collection_name):
+        collection = user.collections.get(collection_name=collection_name)
+        collection.delete()
+        logging.info(f"Deleted collection {collection_name}")
         return collection
