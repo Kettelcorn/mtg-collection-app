@@ -242,7 +242,6 @@ async def delete_user(interaction: discord.Interaction, password: str):
     data = {
         'username': interaction.user.name,
         'password':  password,
-        'discord_id': interaction.user.id,
     }
     response = requests.post(f"{API_URL}/api/delete_user/", json=data)
     if response.status_code == 200:

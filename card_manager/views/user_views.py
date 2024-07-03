@@ -52,7 +52,6 @@ class DeleteUserView(APIView):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
-        discord_id = request.data.get('discord_id')
         user = authenticate(username=username, password=password)
         if user:
             user_service = UserService()
