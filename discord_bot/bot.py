@@ -262,7 +262,7 @@ async def create_user(interaction: discord.Interaction, password: str):
 @bot.tree.command(name='show_users', description='Show all users in discord server')
 async def show_users(interaction: discord.Interaction):
     guild = interaction.guild
-    valid_users = get_valid_users(guild)
+    valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}/api/get_users/", json={"valid_users": valid_users})
     if response.status_code == 200:
         user_list = response.json()
