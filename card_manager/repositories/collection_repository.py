@@ -13,8 +13,8 @@ class CollectionRepository:
         return Collection.objects.get(user=user, collection_name=collection_name)
 
     # Get all collection for a user
-    def get_all_collections_by_user(self, user_id):
-        return Collection.objects.filter(user=user_id)
+    def get_all_collections_by_user(self, user):
+        return Collection.objects.filter(user=user)
 
     # Remove all card_manager from a collection
     def clear_collection(self, user, collection_name):

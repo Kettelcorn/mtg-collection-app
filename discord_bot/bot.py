@@ -37,6 +37,15 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 
+async def get_valid_users(guild):
+    await guild.chunk()
+    users = guild.members
+    valid_users = []
+    for user in users:
+        valid_users.append(user.name)
+    return valid_users
+
+
 # Event listener for when the bot is ready
 @bot.event
 async def on_ready():
@@ -129,7 +138,11 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
 # Command: /get_card <name>
 @bot.tree.command(name='get_card', description='Get information about a Magic: The Gathering card')
 async def card(interaction: discord.Interaction, name: str):
-    response = requests.get(f"{API_URL}{GET_CARD}", params={'name': name, 'type': 'card'})
+    guild = interaction.guild
+    valid_users = await get_valid_users(guild)
+    response = requests.get(f"{API_URL}{GET_CARD}", json= {'name': name,
+                                                           'type': 'card',
+                                                           'valid_users': valid_users})
     if response.status_code == 200:
         card_data = response.json()
         user_list = card_data.get('users', [])
@@ -143,7 +156,11 @@ async def card(interaction: discord.Interaction, name: str):
 # Command: /get_printing <name>
 @bot.tree.command(name='get_printing', description='Get a specific printing of a Magic: The Gathering card')
 async def card(card_interaction: discord.Interaction, name: str):
-    response = requests.get(f"{API_URL}{GET_CARD}", params={'name': name, 'type': 'printing'})
+    guild = card_interaction.guild
+    valid_users = await get_valid_users(guild)
+    response = requests.get(f"{API_URL}{GET_CARD}", json={'name': name,
+                                                              'type': 'printing',
+                                                              'valid_users': valid_users})
     if response.status_code == 200:
         card_data = response.json()
         set_list = card_data.get('prints', [])
@@ -245,19 +262,7 @@ async def create_user(interaction: discord.Interaction, password: str):
 @bot.tree.command(name='show_users', description='Show all users in discord server')
 async def show_users(interaction: discord.Interaction):
     guild = interaction.guild
-    logging.info("Fetching all guild members")
-    await guild.chunk()
-
-    users = guild.members
-    valid_users = []
-
-    logging.info(f"Guild: {guild.name}, Members: {len(users)}")
-    for user in users:
-        logging.info(f"User: {user.name}")
-        valid_users.append(user.name)
-
-    logging.info(f"Valid users: {valid_users}")
-
+    valid_users = get_valid_users(guild)
     response = requests.get(f"{API_URL}/api/get_users/", json={"valid_users": valid_users})
     if response.status_code == 200:
         user_list = response.json()

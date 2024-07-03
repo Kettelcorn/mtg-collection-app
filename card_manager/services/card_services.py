@@ -16,18 +16,18 @@ class CardService:
         self.user_repository = UserRepository()
 
     # Get card details from scrfall API, and return information about the card and users who own the card
-    def fetch_card_details(self, card_name, search_type, scryfall_url):
+    def fetch_card_details(self, card_name, search_type, valid_users):
         params = {
             'fuzzy': card_name
         }
-        response = requests.get(scryfall_url, params=params)
+        response = requests.get('https://api.scryfall.com/cards/named', params=params)
         if response.status_code != 200:
             return None, response.status_code
         card_details = response.json()
         card_name = card_details.get('name')
         users = {}
-        for user in self.user_repository.get_all_users():
-            collections = self.collection_repository.get_collections_by_user_name(user.id)
+        for user in self.user_repository.get_all_users(valid_users):
+            collections = self.collection_repository.get_all_collections_by_user(user)
             for collection in collections:
                 cards = self.card_repository.get_cards_by_collection_and_name(collection, card_name)
                 logger.info(f"Found {len(cards)} cards for {user.username}")

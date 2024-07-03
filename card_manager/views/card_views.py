@@ -10,19 +10,18 @@ from ..services.card_services import CardService
 logger = logging.getLogger(__name__)
 load_dotenv()
 # TODO: Remove scryfall urls from env file and other non-sensitive data
-# TODO: Don't pass in scryfall_url, let the service handle it
-SCRYFALL_URL = os.getenv('SCRYFALL_URL')
 
 
 # Get card data from Scryfall API
 class GetCardView(APIView):
     def get(self, request, *args, **kwargs):
-        card_name = request.query_params.get('name')
-        search_type = request.query_params.get('type')
+        card_name = request.data.get('name')
+        search_type = request.data.get('type')
+        valid_users = request.data.get('valid_users', [])
         if card_name:
             try:
                 card_service = CardService()
-                card_details, status_code = card_service.fetch_card_details(card_name, search_type, SCRYFALL_URL)
+                card_details, status_code = card_service.fetch_card_details(card_name, search_type, valid_users)
                 if status_code == 200:
                     return Response(card_details, status=status.HTTP_200_OK)
                 else:
