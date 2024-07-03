@@ -26,6 +26,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Sol Ring', response.data.get('name'))
         self.assertEqual('normal', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
@@ -44,6 +45,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Malakir Rebirth // Malakir Mire', response.data.get('name'))
         self.assertEqual('modal_dfc', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
@@ -62,6 +64,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Fire // Ice', response.data.get('name'))
         self.assertEqual('split', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
@@ -80,6 +83,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Mosswood Dreadknight // Dread Whispers', response.data.get('name'))
         self.assertEqual('adventure', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
@@ -98,6 +102,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Bushi Tenderfoot // Kenzo the Hardhearted', response.data.get('name'))
         self.assertEqual('flip', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
@@ -116,6 +121,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Mishra, Lost to Phyrexia', response.data.get('name'))
         self.assertEqual('meld', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
@@ -133,6 +139,7 @@ class GetCardViewTestCase(APITestCase):
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Elspeth, Knight-Errant Emblem', response.data.get('name'))
         self.assertEqual('emblem', response.data.get('layout'))
         expected_fields = [
             'id', 'name', 'uri', 'prints_search_uri', 'users', 'released_at', 'set_name', 'collector_number', 'prices',
