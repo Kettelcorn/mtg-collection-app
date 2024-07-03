@@ -18,7 +18,7 @@ class GetCardView(APIView):
         card_name = request.data.get('name')
         search_type = request.data.get('type')
         valid_users = request.data.get('valid_users', [])
-        if card_name:
+        if card_name and search_type:
             try:
                 card_service = CardService()
                 card_details, status_code = card_service.fetch_card_details(card_name, search_type, valid_users)
