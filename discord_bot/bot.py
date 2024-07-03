@@ -9,6 +9,7 @@ import logging
 
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 intents = Intents.default()
 intents.members = True
@@ -50,7 +51,6 @@ async def get_valid_users(guild):
 @bot.event
 async def on_ready():
     await bot.tree.sync()
-    print(f'{bot.user} has connected to Discord!')
     keep_alive.start()
 
 
@@ -60,7 +60,7 @@ async def keep_alive():
     try:
         requests.post(f"{API_URL}{PING_API}")
     except Exception as e:
-        logging.error(f'Error sending ping: {e}')
+        logger.error(f'Error sending ping: {e}')
 
 
 # Create an embed message with the card details
@@ -149,7 +149,7 @@ async def card(interaction: discord.Interaction, name: str):
         finish = card_data.get('finishes', [])[0]
         await create_embed(interaction, card_data, finish, user_list)
     else:
-        logging.error(f'Failed to retrieve card: {response.status_code}')
+        logger.error(f'Failed to retrieve card: {response.status_code}')
         await interaction.response.send_message('Failed to retrieve card.')
 
 
@@ -212,13 +212,11 @@ async def card(card_interaction: discord.Interaction, name: str):
                                 for each_finish in selected_card.get('finishes'):
                                     if f"{each_finish}" == chosen_finish:
                                         selected_finish = each_finish
-                                        logging.info(f"Selected finish: {selected_finish}")
                                         break
                                 if selected_finish:
-                                    logging.info(f"Creating embed for finish: {selected_finish}")
                                     await create_embed(finish_interaction, selected_card, selected_finish, users)
                                 else:
-                                    logging.error(f"Failed to select finish: {chosen_finish}")
+                                    logger.error(f"Failed to select finish: {chosen_finish}")
                                     await finish_interaction.response.send_message("Failed to select finish.")
 
                             finish_select.callback = select_finish
@@ -236,7 +234,7 @@ async def card(card_interaction: discord.Interaction, name: str):
         await display_options(card_interaction, 0)
 
     else:
-        logging.error(f'Failed to retrieve card: {response.status_code}')
+        logger.error(f'Failed to retrieve card: {response.status_code}')
         await card_interaction.response.send_message('Failed to retrieve card.')
 
 
@@ -266,7 +264,6 @@ async def show_users(interaction: discord.Interaction):
     response = requests.get(f"{API_URL}/api/get_users/", json={"valid_users": valid_users})
     if response.status_code == 200:
         user_list = response.json()
-        logging.info(f"Users: {user_list}")
         output = "Users:\n"
         for user in user_list:
             output += f"**{user['username']}**\n"

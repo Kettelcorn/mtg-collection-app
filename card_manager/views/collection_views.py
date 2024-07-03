@@ -70,13 +70,9 @@ class GetCollectionsView(APIView):
 class UpdateCollectionView(APIView):
     def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('file')
-        logger.info(f"File: {csv_file}")
         action = request.data.get('action')
-        logger.info(f"Action: {action}")
         username = request.data.get('username')
-        logger.info(f"Username: {username}")
         collection_name = request.data.get('collection_name')
-        logger.info(f"Collection Name: {collection_name}")
 
         if csv_file and username and collection_name:
             try:

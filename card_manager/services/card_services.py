@@ -30,7 +30,6 @@ class CardService:
             collections = self.collection_repository.get_all_collections_by_user(user)
             for collection in collections:
                 cards = self.card_repository.get_cards_by_collection_and_name(collection, card_name)
-                logger.info(f"Found {len(cards)} cards for {user.username}")
                 if cards:
                     for card in cards:
                         if user.username not in users:

@@ -1,4 +1,4 @@
-import logging
+
 
 from ..models import Collection
 
@@ -25,5 +25,4 @@ class CollectionRepository:
     def delete_collection(self, user, collection_name):
         collection = user.collections.get(collection_name=collection_name)
         collection.delete()
-        logging.info(f"Deleted collection {collection_name}")
         return collection

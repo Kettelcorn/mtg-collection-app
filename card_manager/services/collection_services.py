@@ -83,7 +83,7 @@ class CollectionService:
             decoded_file = csv_file.read().decode('utf-8').splitlines()
             reader = csv.DictReader(decoded_file)
             card_list = [row for row in reader]
-            logger.info(f"{len(card_list)} unique card_manager found")
+            logger.info(f"{len(card_list)} unique cards found")
             identifiers, scryfall_data = [], []
             finish_map = {}
             count, total_quantity, total_sent = 0, 0, 0
@@ -128,13 +128,9 @@ class CollectionService:
                         data = response.json()
                         for not_found in data.get('not_found'):
                             card_key = f'{not_found["set"]}-{not_found["collector_number"]}'.upper()
-                            logger.info(f"Card not found: {card_key}")
-                            logger.info(f"Backup URL: {finish_map[card_key]['backup_url']}")
                             backup_url = finish_map[card_key]['backup_url']
-                            logger.info(f"Backup URL: {backup_url}")
                             backup_response = requests.get(backup_url)
                             if backup_response.status_code == 200:
-                                logger.info(f"Backup response successful")
                                 backup_data = backup_response.json()
                                 new_key = f"{backup_data.get('set')}-{backup_data.get('collector_number')}".upper()
                                 finish_map[new_key] = {
@@ -148,9 +144,6 @@ class CollectionService:
                     else:
                         logger.error(f"Error fetching card details: {response.json()}")
                     identifiers = []
-
-            logger.info(f"Total quantity in csv: {total_quantity}")
-            logger.info(f"Total sent to Scryfall: {total_sent}")
             return scryfall_data, finish_map
 
         except Exception as e:

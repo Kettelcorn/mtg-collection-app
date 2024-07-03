@@ -8,6 +8,8 @@ import logging
 import pandas as pd
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 API_URL = os.getenv('API_URL')
 GET_CARD = os.getenv('GET_CARD')
@@ -78,7 +80,6 @@ class GetCardViewTestCase(APITestCase):
         csv_file_path = os.path.join(current_dir, 'test_list.csv')
         with open(csv_file_path, 'rb') as csv_file:
             csv_file_content = csv_file.read()
-        logging.info(f"CSV file content: {csv_file_content}")
         form = MultipartEncoder(
             fields={
                 'username': 'test_user',
@@ -88,8 +89,6 @@ class GetCardViewTestCase(APITestCase):
             }
         )
         response = self.client.post(update_collection_url, data=form.to_string(), content_type=form.content_type)
-        logging.info(f"Response status: {response.status_code}")
-        logging.info(f"Response content: {response.content}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Get the card
@@ -99,7 +98,6 @@ class GetCardViewTestCase(APITestCase):
             'valid_users': ['test_user']
         }
         response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
-        logging.info(f"Response status message: {response.content}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('Bone Saw', response.data.get('name'))
         self.assertIn('users', response.data)

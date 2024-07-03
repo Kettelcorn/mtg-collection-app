@@ -17,13 +17,10 @@ class CreateUserView(APIView):
         discord_id = request.data.get('discord_id')
         if username and password:
             user_service = UserService()
-            logger.info(f'Creating user with username: {username}')
             if user_service.get_user_by_username(username):
                 return Response({'error': 'User already exists'}, status=400)
             user = user_service.create_user(username, password, discord_id)
-            logger.info(f'User created with username: {username}')
             serializer = UserSerializer(user)
-            logger.info(f'Serializing user with username: {username}')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': 'No discord_id or discord_username provided'}, status=400)

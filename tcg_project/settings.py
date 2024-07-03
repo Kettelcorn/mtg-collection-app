@@ -95,7 +95,7 @@ LOGGING = {
         'django': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
         'django.db.backends': {
             'handlers': ['file'],
@@ -110,7 +110,7 @@ LOGGING = {
         'card_manager': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
         'discord': {
             'handlers': ['file'],
