@@ -17,7 +17,7 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with a normal layout
     def test_get_card_normal(self):
-        response = self.client.get(self.url, {'name': 'sol ring', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'sol ring', 'type': 'card', 'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('normal', response.data.get('layout'))
         expected_fields = [
@@ -30,7 +30,8 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with a double faced layout
     def test_get_card_double_face(self):
-        response = self.client.get(self.url, {'name': 'Malakir Rebirth // Malakir Mire', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'Malakir Rebirth // Malakir Mire', 'type': 'card',
+                                              'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('modal_dfc', response.data.get('layout'))
         expected_fields = [
@@ -43,7 +44,7 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with a split layout
     def test_get_card_split(self):
-        response = self.client.get(self.url, {'name': 'Fire // Ice', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'Fire // Ice', 'type': 'card', 'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('split', response.data.get('layout'))
         expected_fields = [
@@ -56,7 +57,8 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with an adventure layout
     def test_get_card_adventure(self):
-        response = self.client.get(self.url, {'name': 'Mosswood Dreadknight // Dread Whispers', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'Mosswood Dreadknight // Dread Whispers', 'type': 'card',
+                                              'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('adventure', response.data.get('layout'))
         expected_fields = [
@@ -69,7 +71,8 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with a flip layout
     def test_get_card_flip(self):
-        response = self.client.get(self.url, {'name': 'Bushi Tenderfoot // Kenzo the Hardhearted', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'Bushi Tenderfoot // Kenzo the Hardhearted', 'type': 'card',
+                                              'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('flip', response.data.get('layout'))
         expected_fields = [
@@ -82,7 +85,8 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with a meld layout
     def test_get_card_meld(self):
-        response = self.client.get(self.url, {'name': 'Mishra, Lost to Phyrexia', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'Mishra, Lost to Phyrexia', 'type': 'card',
+                                              'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('meld', response.data.get('layout'))
         expected_fields = [
@@ -94,7 +98,8 @@ class GetCardViewTestCase(APITestCase):
                 self.assertIn(field, response.data)
 
     def test_get_card_emblem(self):
-        response = self.client.get(self.url, {'name': 'Elspeth, Knight-Errant Emblem', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'Elspeth, Knight-Errant Emblem', 'type': 'card',
+                                              'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual('emblem', response.data.get('layout'))
         expected_fields = [
@@ -107,18 +112,20 @@ class GetCardViewTestCase(APITestCase):
 
     # Test case for getting a card with an invalid name
     def test_get_card_invalid_name(self):
-        response = self.client.get(self.url, {'name': 'invalid card name', 'type': 'card'})
+        response = self.client.get(self.url, {'name': 'invalid card name', 'type': 'card', 'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn('error', response.data)
 
     # Test case for getting a card with no name
     def test_get_card_no_name(self):
-        response = self.client.get(self.url, {'type': 'card'})
+        response = self.client.get(self.url, {'type': 'card', 'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
 
     # Test case for getting a card with no type
     def test_get_card_no_type(self):
-        response = self.client.get(self.url, {'name': 'Sol Ring'})
+        response = self.client.get(self.url, {'name': 'Sol Ring', 'valid_users': []})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
+
+    # TODO: Add test for missing valid_users parameter
