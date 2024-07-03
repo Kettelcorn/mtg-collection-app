@@ -5,6 +5,8 @@ from rest_framework import status
 from dotenv import load_dotenv
 import os
 import logging
+import pandas as pd
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 load_dotenv()
 API_URL = os.getenv('API_URL')
@@ -36,6 +38,7 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    # Test case for getting a printing of a card
     def test_get_printing(self):
         data = {
             'name': 'Nicol Bolas, God-Pharaoh',
@@ -47,6 +50,61 @@ class GetCardViewTestCase(APITestCase):
         self.assertEqual('Nicol Bolas, God-Pharaoh', response.data.get('name'))
         self.assertIn('prints', response.data)
         self.assertIn('users', response.data)
+
+    # Test case for creating a user, creating a collection, and adding a card to the collection, then getting the card
+    def test_user_has_card(self):
+        # Create a user
+        data = {
+            'username': 'test_user',
+            'password': 'test_password',
+            'discord_id': 'test_discord_id'
+        }
+        response = self.client.post(f"{API_URL}/api/create_user/",
+                                    data=json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Create a collection for the user
+        data = {
+            'username': 'test_user',
+            'collection_name': 'test_collection'
+        }
+        response = self.client.post(f"{API_URL}/api/create_collection/",
+                                    data=json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Add cards to the collection
+        update_collection_url = f"{API_URL}/api/update_collection/"
+        current_dir = os.path.dirname(__file__)
+        csv_file_path = os.path.join(current_dir, 'test_list.csv')
+        with open(csv_file_path, 'rb') as csv_file:
+            csv_file_content = csv_file.read()
+        logging.info(f"CSV file content: {csv_file_content}")
+        form = MultipartEncoder(
+            fields={
+                'username': 'test_user',
+                'action': 'add',
+                'collection_name': 'test_collection',
+                'file': ('test_list.csv', csv_file_content, 'text/csv')
+            }
+        )
+        response = self.client.post(update_collection_url, data=form.to_string(), content_type=form.content_type)
+        logging.info(f"Response status: {response.status_code}")
+        logging.info(f"Response content: {response.content}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Get the card
+        data = {
+            'name': 'Bone Saw',
+            'type': 'card',
+            'valid_users': ['test_user']
+        }
+        response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
+        logging.info(f"Response status message: {response.content}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Bone Saw', response.data.get('name'))
+        self.assertIn('users', response.data)
+        self.assertEqual(1, len(response.data.get('users')))
+        self.assertEqual('test_user', list(response.data.get('users').keys())[0])
 
     # Test case for getting a card with a double faced layout
     def test_get_card_double_face(self):
@@ -192,4 +250,14 @@ class GetCardViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
 
-    # TODO: Add test for missing valid_users parameter
+    # Test case for no valid users
+    def test_get_card_no_valid_users(self):
+        data = {
+            'name': 'Sol Ring',
+            'type': 'card'
+        }
+        response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('users', response.data)
+    # TODO: Add test when user is created and has card you want
+
