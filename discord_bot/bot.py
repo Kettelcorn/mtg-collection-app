@@ -218,14 +218,16 @@ async def card(card_interaction: discord.Interaction, name: str):
         await card_interaction.response.send_message('Failed to retrieve card.')
 
 
-# Command: /create_user
+# Command: /create_user <password>
 @bot.tree.command(name='create_user', description='Create a new user')
-async def create_user(interaction: discord.Interaction):
+async def create_user(interaction: discord.Interaction, password: str):
     user_id = interaction.user.id
     username = interaction.user.name
+    user_password = password
     data = {
         'discord_id': user_id,
-        'discord_username': username,
+        'username': username,
+        'password': user_password
     }
     response = requests.post(f"{API_URL}{CREATE_USER}", json=data)
     if response.status_code == 201:

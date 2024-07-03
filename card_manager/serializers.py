@@ -7,8 +7,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'username',
+            'password',
             'discord_id',
-            'discord_username',
             'collections'
         ]
 

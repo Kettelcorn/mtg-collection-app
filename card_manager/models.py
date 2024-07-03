@@ -1,13 +1,13 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
 # User model for storing Discord user information
-class User(models.Model):
-    discord_id = models.CharField(max_length=255, unique=True)
-    discord_username = models.CharField(max_length=255)
+class User(AbstractUser):
+    discord_id = models.CharField(max_length=255, unique=True, default=None)
 
     def __str__(self):
-        return self.discord_username
+        return self.username
 
 
 # Collection model for storing a user's collection of cards
@@ -34,4 +34,4 @@ class Card(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.quantity}x {self.card_name} in {self.collection.user.discord_username}'s collection"
+        return f"{self.quantity}x {self.card_name} in {self.collection.user.username}'s collection"

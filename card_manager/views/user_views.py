@@ -6,18 +6,24 @@ from ..services.user_services import UserService
 from ..serializers import UserSerializer
 from decimal import Decimal
 
+logger = logging.getLogger(__name__)
+
 
 # Create a new user
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
         discord_id = request.data.get('discord_id')
-        discord_username = request.data.get('discord_username')
-        if discord_id and discord_username:
+        if username and password:
             user_service = UserService()
-            if user_service.get_user_by_discord_id(discord_id):
+            logger.info(f'Creating user with username: {username}')
+            if user_service.get_user_by_username(username):
                 return Response({'error': 'User already exists'}, status=400)
-            user = user_service.create_user(discord_id, discord_username)
+            user = user_service.create_user(username, password, discord_id)
+            logger.info(f'User created with username: {username}')
             serializer = UserSerializer(user)
+            logger.info(f'Serializing user with username: {username}')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': 'No discord_id or discord_username provided'}, status=400)
@@ -44,9 +50,19 @@ class ChangeUsernameView(APIView):
 
 class DeleteUserView(APIView):
     def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
         discord_id = request.data.get('discord_id')
         if discord_id:
             user_service = UserService()
-            user = user_service.delete_user(discord_id)
-            serializer = UserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            user = user_service.get_user_by_discord_id(discord_id)
+            if user:
+                # TODO: Add function to delete user based on discord id
+                user_service.delete_user(username)
+                return Response({'message': 'User deleted'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            user_service = UserService()
+            user = user_service.authenticate_user(username, password)
+
