@@ -1,4 +1,5 @@
 import discord
+from discord import Intents
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
@@ -8,6 +9,9 @@ import logging
 
 
 logging.basicConfig(level=logging.INFO)
+
+intents = Intents.default()
+intents.members = True
 
 # Load the environment variables
 load_dotenv()
@@ -26,6 +30,7 @@ prompt_message_ids = {}
 
 # Define intents
 intents = discord.Intents.default()
+intents.members = True
 intents.message_content = True
 
 # Create the bot instance
@@ -234,6 +239,35 @@ async def create_user(interaction: discord.Interaction, password: str):
         await interaction.response.send_message('User created successfully!')
     elif response.status_code == 400:
         await interaction.response.send_message(response.json()['error'])
+
+
+# Command: /show_users
+@bot.tree.command(name='show_users', description='Show all users in discord server')
+async def show_users(interaction: discord.Interaction):
+    guild = interaction.guild
+    logging.info("Fetching all guild members")
+    await guild.chunk()
+
+    users = guild.members
+    valid_users = []
+
+    logging.info(f"Guild: {guild.name}, Members: {len(users)}")
+    for user in users:
+        logging.info(f"User: {user.name}")
+        valid_users.append(user.name)
+
+    logging.info(f"Valid users: {valid_users}")
+
+    response = requests.get(f"{API_URL}/api/get_users/", json={"valid_users": valid_users})
+    if response.status_code == 200:
+        user_list = response.json()
+        logging.info(f"Users: {user_list}")
+        output = "Users:\n"
+        for user in user_list:
+            output += f"**{user['username']}**\n"
+        await interaction.response.send_message(output)
+    else:
+        await interaction.response.send_message('Failed to retrieve users.')
 
 
 # Command: /delete_user

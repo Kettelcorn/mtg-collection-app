@@ -7,16 +7,18 @@ from ..services.user_services import UserService
 
 logger = logging.getLogger(__name__)
 
+# TODO: Figure out how to authenticate users when using this API
+
 
 # Create a collection for a user
 class CreateCollectionView(APIView):
     def post(self, request, *args, **kwargs):
-        discord_id = request.data.get('discord_id')
+        username = request.data.get('username')
         collection_name = request.data.get('collection_name')
-        if discord_id and collection_name:
+        if username and collection_name:
             try:
                 user_service = UserService()
-                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                user = user_service.user_repository.get_user(username)
                 collection_service = CollectionService()
                 response_data, status_code = collection_service.create_collection(user, collection_name)
                 return Response(response_data, status=status_code)
@@ -30,12 +32,12 @@ class CreateCollectionView(APIView):
 # Get collection data for a user by collection name
 class GetCollectionView(APIView):
     def get(self, request, *args, **kwargs):
-        discord_id = request.query_params.get('discord_id')
-        collection_name = request.query_params.get('collection_name')
-        if discord_id and collection_name:
+        username = request.data.get('username')
+        collection_name = request.data.get('collection_name')
+        if username and collection_name:
             try:
                 user_service = UserService()
-                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                user = user_service.user_repository.get_user(username)
                 collection_service = CollectionService()
                 card_list = collection_service.get_collection_by_name(user, collection_name)
                 return Response(card_list, status=status.HTTP_200_OK)
@@ -49,11 +51,11 @@ class GetCollectionView(APIView):
 # Get all collection data for a user
 class GetCollectionsView(APIView):
     def get(self, request, *args, **kwargs):
-        discord_id = request.query_params.get('discord_id')
-        if discord_id:
+        username = request.data.get('username')
+        if username:
             try:
                 user_service = UserService()
-                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                user = user_service.user_repository.get_user(username)
                 collection_service = CollectionService()
                 card_list = collection_service.get_all_collections(user)
                 return Response(card_list, status=status.HTTP_200_OK)
@@ -69,17 +71,19 @@ class UpdateCollectionView(APIView):
     def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('file')
         action = request.data.get('action')
-        discord_id = request.data.get('discord_id')
+        username = request.data.get('username')
+        collection_name = request.data.get('collection_name')
 
-        if csv_file and discord_id:
+        if csv_file and username and collection_name:
             try:
                 user_service = UserService()
-                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                user = user_service.user_repository.get_user(username)
                 collection_service = CollectionService()
                 scryfall_data, finish_map = collection_service.process_csv(csv_file)
                 if action == 'update':
-                    collection_service.clear_collection(user)
-                response_data, status_code = collection_service.add_collection(user, scryfall_data, finish_map)
+                    collection_service.clear_collection(user, collection_name)
+                response_data, status_code = collection_service.add_collection(user, collection_name,
+                                                                               scryfall_data, finish_map)
                 return Response(response_data, status=status_code)
             except Exception as e:
                 logger.error(f"Error processing file: {e}")
@@ -91,13 +95,14 @@ class UpdateCollectionView(APIView):
 # Delete collection data for a user
 class DeleteCollectionView(APIView):
     def post(self, request, *args, **kwargs):
-        discord_id = request.data.get('discord_id')
-        if discord_id:
+        username = request.data.get('username')
+        collection_name = request.data.get('collection_name')
+        if username:
             try:
                 user_service = UserService()
-                user = user_service.user_repository.get_user_by_discord_id(discord_id)
+                user = user_service.user_repository.get_user(username)
                 collection_service = CollectionService()
-                response_data, status_code = collection_service.clear_collection(user)
+                response_data, status_code = collection_service.clear_collection(user, collection_name)
                 return Response(response_data, status=status_code)
             except Exception as e:
                 logger.error(f"Error clearing collection: {e}")

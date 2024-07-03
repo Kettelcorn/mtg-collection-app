@@ -67,9 +67,9 @@ class CollectionService:
         return collection_list
 
     # Clear all cards from a user's collection
-    def clear_collection(self, user):
+    def clear_collection(self, user, collection_name):
         try:
-            collection = self.collection_repository.clear_collection(user)
+            collection = self.collection_repository.clear_collection(user, collection_name)
             return {'message': 'Collection cleared successfully'}, status.HTTP_200_OK
         except Exception as e:
             logger.error(f"Error clearing collection: {e}")
@@ -158,9 +158,9 @@ class CollectionService:
             return None, None
 
     # Add cards to collection
-    def add_collection(self, user, scryfall_data, finish_map):
+    def add_collection(self, user, collection_name, scryfall_data, finish_map):
         try:
-            collection = user.collection
+            collection = self.collection_repository.get_collection_by_name(user, collection_name)
             error_count = 0
             all_cards = []
             for data in scryfall_data:
@@ -217,7 +217,7 @@ class CollectionService:
                     all_cards.append(card_data)
                     # TODO: Look for option do add card_manager to database in bulk
                     # self.card_repository.create_card(card_data)
-            self.card_repository.create_cards(all_cards, user.collection)
+            self.card_repository.create_cards(all_cards, collection)
             logger.info(f"Error count: {error_count}")
             return {'message': 'Data received successfully'}, status.HTTP_200_OK
         except Exception as e:

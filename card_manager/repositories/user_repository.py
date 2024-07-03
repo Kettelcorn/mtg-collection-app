@@ -25,9 +25,9 @@ class UserRepository:
             return None
 
     # Get all users
-    def get_all_users(self):
+    def get_all_users(self, valid_users):
         try:
-            return User.objects.all()
+            return User.objects.filter(username__in=valid_users)
         except User.DoesNotExist:
             return None
 

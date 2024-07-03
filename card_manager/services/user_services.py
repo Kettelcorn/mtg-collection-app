@@ -18,8 +18,8 @@ class UserService:
         return authenticate(username=username, password=password)
 
     # Get all users
-    def get_all_users(self):
-        return self.user_repository.get_all_users()
+    def get_all_users(self, valid_users):
+        return self.user_repository.get_all_users(valid_users)
 
     # Get a user by Discord ID
     def get_user_by_username(self, username):

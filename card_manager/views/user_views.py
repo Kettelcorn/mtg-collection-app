@@ -31,19 +31,20 @@ class CreateUserView(APIView):
 
 class GetUsersView(APIView):
     def get(self, request, *args, **kwargs):
+        valid_users = request.data.get('valid_users', [])
         user_service = UserService()
-        users = user_service.get_all_users()
+        users = user_service.get_all_users(valid_users)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ChangeUsernameView(APIView):
     def post(self, request, *args, **kwargs):
-        discord_id = request.data.get('discord_id')
+        username = request.data.get('username')
         new_username = request.data.get('new_username')
-        if discord_id and new_username:
+        if username and new_username:
             user_service = UserService()
-            user = user_service.change_username(discord_id, new_username)
+            user = user_service.change_username(username, new_username)
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
 

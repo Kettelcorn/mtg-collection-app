@@ -15,7 +15,7 @@ class CollectionRepository:
         return Collection.objects.filter(user=user_id)
 
     # Remove all card_manager from a collection
-    def clear_collection(self, user):
-        collection = user.collection
+    def clear_collection(self, user, collection_name):
+        collection = user.collections.get(collection_name=collection_name)
         collection.cards.all().delete()
         return collection
