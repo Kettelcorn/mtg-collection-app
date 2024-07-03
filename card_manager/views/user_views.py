@@ -55,17 +55,8 @@ class DeleteUserView(APIView):
         discord_id = request.data.get('discord_id')
         user = authenticate(username=username, password=password)
         if user:
-            if discord_id:
-                user_service = UserService()
-                user = user_service.get_user_by_discord_id(discord_id)
-                if user:
-                    user_service.delete_user(username)
-                    return Response({'message': 'User deleted'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-            else:
-                # TODO: Put logic for users with no discord_id here
-                return Response({'error': 'No discord_id provided'}, status=status.HTTP_400_BAD_REQUEST)
-
+            user_service = UserService()
+            user_service.delete_user(username)
+            return Response({'message': 'User deleted'}, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
