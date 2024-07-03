@@ -36,6 +36,18 @@ class GetCardViewTestCase(APITestCase):
             with self.subTest(field=field):
                 self.assertIn(field, response.data)
 
+    def test_get_printing(self):
+        data = {
+            'name': 'Nicol Bolas, God-Pharaoh',
+            'type': 'printing',
+            'valid_users': []
+        }
+        response = self.client.generic('GET', self.url, json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual('Nicol Bolas, God-Pharaoh', response.data.get('name'))
+        self.assertIn('prints', response.data)
+        self.assertIn('users', response.data)
+
     # Test case for getting a card with a double faced layout
     def test_get_card_double_face(self):
         data = {
