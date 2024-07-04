@@ -19,11 +19,6 @@ load_dotenv()
 # Get the bot token from the environment
 BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
-GET_CARD = os.getenv('GET_CARD')
-GET_COLLECTION = os.getenv('GET_COLLECTION')
-UPDATE_COLLECTION = os.getenv('UPDATE_COLLECTION')
-CREATE_USER = os.getenv('CREATE_USER')
-PING_API = os.getenv('PING_API')
 
 prompt_message_ids = {}
 
@@ -57,7 +52,7 @@ async def on_ready():
 @tasks.loop(seconds=60)
 async def keep_alive():
     try:
-        requests.post(f"{API_URL}{PING_API}")
+        requests.post(f"{API_URL}/api/ping/")
     except Exception as e:
         logger.error(f'Error sending ping: {e}')
 
@@ -140,7 +135,7 @@ async def card(interaction: discord.Interaction, name: str):
     await interaction.response.defer(ephemeral=True)
     guild = interaction.guild
     valid_users = await get_valid_users(guild)
-    response = requests.get(f"{API_URL}{GET_CARD}", json= {'name': name,
+    response = requests.get(f"{API_URL}/api/get_card/", json= {'name': name,
                                                            'type': 'card',
                                                            'valid_users': valid_users})
     if response.status_code == 200:
@@ -159,7 +154,7 @@ async def card(card_interaction: discord.Interaction, name: str):
     await card_interaction.response.defer(ephemeral=True)
     guild = card_interaction.guild
     valid_users = await get_valid_users(guild)
-    response = requests.get(f"{API_URL}{GET_CARD}", json={'name': name,
+    response = requests.get(f"{API_URL}/api/get_card/", json={'name': name,
                                                               'type': 'printing',
                                                               'valid_users': valid_users})
     if response.status_code == 200:
@@ -253,7 +248,7 @@ async def create_user(interaction: discord.Interaction, password: str):
         'username': username,
         'password': user_password
     }
-    response = requests.post(f"{API_URL}{CREATE_USER}", json=data)
+    response = requests.post(f"{API_URL}/api/create_user/", json=data)
     if response.status_code == 201:
         await interaction.followup.send('User created successfully!')
     elif response.status_code == 400:
@@ -317,7 +312,7 @@ async def get_collection(interaction: discord.Interaction, collection_name: str)
         'username': username,
         'collection_name': collection_name
     }
-    response = requests.get(f"{API_URL}{GET_COLLECTION}", json=data)
+    response = requests.get(f"{API_URL}/api/get_collection/", json=data)
     if response.status_code == 200:
         collection = response.json()
         if collection:
@@ -405,7 +400,7 @@ async def on_message(message):
                                         form.add_field('collection_name',
                                                        prompt_message_ids[user_id]['collection_name'])
                                         await message.delete()
-                                        async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
+                                        async with session.post(f'{API_URL}/api/update_collection/',
                                                                 data=form) as api_response:
                                             if api_response.status == 200:
                                                 await interaction.followup.send(

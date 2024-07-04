@@ -12,14 +12,13 @@ logger = logging.getLogger('card_manager')
 
 load_dotenv()
 API_URL = os.getenv('API_URL')
-GET_CARD = os.getenv('GET_CARD')
 
 
 # Test cases for the GetCardView API view
 class GetCardViewTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
-        self.url = f"{API_URL}{GET_CARD}"
+        self.url = f"{API_URL}/api/get_card/"
 
     # Test case for getting a card with a normal layout
     def test_get_card_normal(self):
