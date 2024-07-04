@@ -45,7 +45,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'tcg_project.urls'
+ROOT_URLCONF = 'mtg_project.urls'
 
 TEMPLATES = [
     {
@@ -63,7 +63,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'tcg_project.wsgi.application'
+WSGI_APPLICATION = 'mtg_project.wsgi.application'
 
 LOGGING = {
     'version': 1,
