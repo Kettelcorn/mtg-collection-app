@@ -360,7 +360,8 @@ async def add(interaction: discord.Interaction, collection_name: str):
     prompt_message_ids[interaction.user.id] = {
         'message_id': message.id,
         'collection_name': collection_name,
-        'action': 'add'
+        'action': 'add',
+        'interaction': interaction
     }
 
 
@@ -372,7 +373,8 @@ async def upload(interaction: discord.Interaction, collection_name: str):
     prompt_message_ids[interaction.user.id] = {
         'message_id': message.id,
         'collection_name': collection_name,
-        'action': 'update'
+        'action': 'update',
+        'interaction': interaction
     }
 
 
@@ -385,9 +387,12 @@ async def on_message(message):
         if message.attachments:
             if message.reference and message.reference.message_id:
                 if message.reference.message_id == prompt_message_ids[user_id]['message_id']:
+                    interaction = prompt_message_ids[user_id]['interaction']
+                    await interaction.followup.send("Uploading your CSV file...", ephemeral=True)
+                    prompt_message = await message.channel.fetch_message(prompt_message_ids[user_id]['message_id'])
+                    await prompt_message.delete()
                     for attachment in message.attachments:
                         if attachment.filename.endswith('.csv'):
-                            await message.channel.send(f"Uploading CSV file '{attachment.filename}'...")
                             async with aiohttp.ClientSession() as session:
                                 async with session.get(attachment.url) as response:
                                     if response.status == 200:
@@ -399,15 +404,18 @@ async def on_message(message):
                                         form.add_field('username', message.author.name)
                                         form.add_field('collection_name',
                                                        prompt_message_ids[user_id]['collection_name'])
-
+                                        await message.delete()
                                         async with session.post(f'{API_URL}{UPDATE_COLLECTION}',
                                                                 data=form) as api_response:
                                             if api_response.status == 200:
-                                                await message.channel.send(
-                                                    f"CSV file '{attachment.filename}' uploaded successfully!")
+                                                await interaction.followup.send(
+                                                    content="Collection updated successfully!", ephemeral=True
+                                                )
+
                                             else:
-                                                await message.channel.send(
-                                                    f"Failed to upload CSV file '{attachment.filename}'")
+                                                await interaction.followup.send(
+                                                    content="Failed to update collection.", ephemeral=True
+                                                )
 
                             del prompt_message_ids[user_id]
 
