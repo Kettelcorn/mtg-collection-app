@@ -9,7 +9,7 @@ import csv
 import logging
 from rest_framework import status
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('card_manager')
 
 
 class CollectionService:

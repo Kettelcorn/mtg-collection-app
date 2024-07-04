@@ -6,7 +6,7 @@ import json
 from decimal import Decimal
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('card_manager')
 
 
 class CardService:

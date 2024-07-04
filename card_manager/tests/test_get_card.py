@@ -8,7 +8,7 @@ import logging
 import pandas as pd
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('card_manager')
 
 load_dotenv()
 API_URL = os.getenv('API_URL')
