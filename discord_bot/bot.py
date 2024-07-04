@@ -128,16 +128,16 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
                          value=output, inline=True)
 
     if embed2:
-        await finish_interaction.response.send_message(embeds=[embed_main, embed1, embed2])
+        await finish_interaction.followup.send(embeds=[embed_main, embed1, embed2], ephemeral=True)
     else:
         embed_main.set_image(url=chosen_card.get('image_uris').get('normal'))
-        await finish_interaction.response.send_message(embed=embed_main)
+        await finish_interaction.followup.send(embed=embed_main, ephemeral=True)
 
 
 # Command: /get_card <name>
 @bot.tree.command(name='get_card', description='Get information about a Magic: The Gathering card')
 async def card(interaction: discord.Interaction, name: str):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     guild = interaction.guild
     valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}{GET_CARD}", json= {'name': name,
@@ -150,13 +150,13 @@ async def card(interaction: discord.Interaction, name: str):
         await create_embed(interaction, card_data, finish, user_list)
     else:
         logger.error(f'Failed to retrieve card: {response.status_code}')
-        await interaction.response.send_message('Failed to retrieve card.')
+        await interaction.followup.send('Failed to retrieve card.')
 
 
 # Command: /get_printing <name>
 @bot.tree.command(name='get_printing', description='Get a specific printing of a Magic: The Gathering card')
 async def card(card_interaction: discord.Interaction, name: str):
-    await card_interaction.response.defer()
+    await card_interaction.response.defer(ephemeral=True)
     guild = card_interaction.guild
     valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}{GET_CARD}", json={'name': name,
@@ -190,7 +190,7 @@ async def card(card_interaction: discord.Interaction, name: str):
 
             # Callback function for the select menu
             async def select_callback(set_interaction: discord.Interaction):
-                await set_interaction.response.defer()
+                await set_interaction.response.defer(ephemeral=True)
                 selected_value = set_interaction.data.get('values')[0]
                 if selected_value == "more":
                     await display_options(set_interaction, start_index + 24)
@@ -209,7 +209,7 @@ async def card(card_interaction: discord.Interaction, name: str):
 
                             # Callback function for the finish select menu
                             async def select_finish(finish_interaction):
-                                await finish_interaction.response.defer()
+                                await finish_interaction.response.defer(ephemeral=True)
                                 selected_finish = None
                                 chosen_finish = finish_interaction.data.get('values')[0]
                                 for each_finish in selected_card.get('finishes'):
@@ -220,31 +220,31 @@ async def card(card_interaction: discord.Interaction, name: str):
                                     await create_embed(finish_interaction, selected_card, selected_finish, users)
                                 else:
                                     logger.error(f"Failed to select finish: {chosen_finish}")
-                                    await finish_interaction.response.send_message("Failed to select finish.")
+                                    await finish_interaction.followup.send("Failed to select finish.")
 
                             finish_select.callback = select_finish
                             finish_view = discord.ui.View()
                             finish_view.add_item(finish_select)
-                            await set_interaction.response.send_message("Choose a finish:",
+                            await set_interaction.followup.send("Choose a finish:",
                                                                         view=finish_view,
                                                                         ephemeral=True)
 
             select.callback = select_callback
             view = discord.ui.View()
             view.add_item(select)
-            await interaction.response.send_message("Choose a printing:", view=view, ephemeral=True)
+            await interaction.followup.send("Choose a printing:", view=view, ephemeral=True)
 
         await display_options(card_interaction, 0)
 
     else:
         logger.error(f'Failed to retrieve card: {response.status_code}')
-        await card_interaction.response.send_message('Failed to retrieve card.')
+        await card_interaction.followup.send('Failed to retrieve card.')
 
 
 # Command: /create_user <password>
 @bot.tree.command(name='create_user', description='Create a new user')
 async def create_user(interaction: discord.Interaction, password: str):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     user_id = interaction.user.id
     username = interaction.user.name
     user_password = password
@@ -255,15 +255,15 @@ async def create_user(interaction: discord.Interaction, password: str):
     }
     response = requests.post(f"{API_URL}{CREATE_USER}", json=data)
     if response.status_code == 201:
-        await interaction.response.send_message('User created successfully!')
+        await interaction.followup.send('User created successfully!')
     elif response.status_code == 400:
-        await interaction.response.send_message(response.json()['error'])
+        await interaction.followup.send(response.json()['error'])
 
 
 # Command: /show_users
 @bot.tree.command(name='show_users', description='Show all users in discord server')
 async def show_users(interaction: discord.Interaction):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     guild = interaction.guild
     valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}/api/get_users/", json={"valid_users": valid_users})
@@ -272,30 +272,30 @@ async def show_users(interaction: discord.Interaction):
         output = "Users:\n"
         for user in user_list:
             output += f"**{user['username']}**\n"
-        await interaction.response.send_message(output)
+        await interaction.followup.send(output)
     else:
-        await interaction.response.send_message('Failed to retrieve users.')
+        await interaction.followup.send('Failed to retrieve users.')
 
 
 # Command: /delete_user
 @bot.tree.command(name='delete_user', description='Delete a user')
 async def delete_user(interaction: discord.Interaction, password: str):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     data = {
         'username': interaction.user.name,
         'password':  password,
     }
     response = requests.post(f"{API_URL}/api/delete_user/", json=data)
     if response.status_code == 200:
-        await interaction.response.send_message('User deleted successfully!')
+        await interaction.followup.send('User deleted successfully!')
     else:
-        await interaction.response.send_message('Failed to delete user.')
+        await interaction.followup.send('Failed to delete user.')
 
 
 # Command: /create_collection
 @bot.tree.command(name='create_collection', description='Create a new collection')
 async def create_collection(interaction: discord.Interaction, collection_name: str):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
     data = {
         'username': username,
@@ -303,15 +303,15 @@ async def create_collection(interaction: discord.Interaction, collection_name: s
     }
     response = requests.post(f"{API_URL}/api/create_collection/", json=data)
     if response.status_code == 201:
-        await interaction.response.send_message('Collection created successfully!')
+        await interaction.followup.send('Collection created successfully!')
     else:
-        await interaction.response.send_message('Failed to create collection.')
+        await interaction.followup.send('Failed to create collection.')
 
 
 # Command: /get_collection
 @bot.tree.command(name='get_collection', description='Get your collection')
 async def get_collection(interaction: discord.Interaction, collection_name: str):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
     data = {
         'username': username,
@@ -326,17 +326,17 @@ async def get_collection(interaction: discord.Interaction, collection_name: str)
             embed = discord.Embed(title=f"{interaction.user.name}'s {collection_name} Collection")
             embed.add_field(name="Card Count", value=card_count, inline=True)
             embed.add_field(name="Total Value", value=f"${total_value}", inline=True)
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
         else:
-            await interaction.response.send_message('No card_manager found in your collection.')
+            await interaction.followup.send('No card_manager found in your collection.')
     else:
-        await interaction.response.send_message('Failed to retrieve collection.')
+        await interaction.followup.send('Failed to retrieve collection.')
 
 
 # Command: /show_collections
 @bot.tree.command(name='show_collections', description='Show all collections for a user')
 async def show_collections(interaction: discord.Interaction):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
     data = {
         'username': username
@@ -347,9 +347,9 @@ async def show_collections(interaction: discord.Interaction):
         output = "Collections:\n"
         for collection in collections:
             output += f"**{collection['collection_name']}**\n"
-        await interaction.response.send_message(output)
+        await interaction.followup.send(output)
     else:
-        await interaction.response.send_message('Failed to retrieve collections.')
+        await interaction.followup.send('Failed to retrieve collections.')
 
 
 # Command: /add_to_collection
@@ -415,7 +415,7 @@ async def on_message(message):
 # Command: Delete a user's collection
 @bot.tree.command(name='delete_collection', description='Delete a collection')
 async def delete_collection(interaction: discord.Interaction, collection_name: str):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
     data = {
         'username': username,
@@ -423,9 +423,9 @@ async def delete_collection(interaction: discord.Interaction, collection_name: s
     }
     response = requests.post(f"{API_URL}/api/delete_collection/", json=data)
     if response.status_code == 200:
-        await interaction.response.send_message('Collection deleted successfully!')
+        await interaction.followup.send('Collection deleted successfully!')
     else:
-        await interaction.response.send_message('Failed to delete collection.')
+        await interaction.followup.send('Failed to delete collection.')
 
 
 # Command: /hello
