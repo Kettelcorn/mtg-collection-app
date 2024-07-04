@@ -86,7 +86,7 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'console': {
-            'level': 'INFO',  # Adjusted to INFO to reduce clutter
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
@@ -94,27 +94,27 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['file', 'console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'WARNING',
+            'propagate': False,
         },
         'django.db.backends': {
             'handlers': ['file'],
-            'level': 'ERROR',  # Reduced verbosity for database backend logs
+            'level': 'ERROR',
             'propagate': False,
         },
         'django.request': {
             'handlers': ['file', 'console'],
-            'level': 'ERROR',  # Only log errors to console
+            'level': 'ERROR',
             'propagate': False,
         },
         'card_manager': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
         'discord': {
             'handlers': ['file'],
-            'level': 'WARNING',  # Adjusted to WARNING to reduce clutter from discord logs
+            'level': 'WARNING',
             'propagate': False,
         },
     },
