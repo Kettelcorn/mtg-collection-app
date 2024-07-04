@@ -8,8 +8,6 @@ from ..services.card_services import CardService
 
 
 logger = logging.getLogger('card_manager')
-load_dotenv()
-# TODO: Remove scryfall urls from env file and other non-sensitive data
 
 
 # Get card data from Scryfall API

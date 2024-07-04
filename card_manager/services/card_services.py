@@ -20,7 +20,8 @@ class CardService:
         params = {
             'fuzzy': card_name
         }
-        response = requests.get('https://api.scryfall.com/cards/named', params=params)
+        scryfall_api = 'https://api.scryfall.com/cards/named'
+        response = requests.get(scryfall_api, params=params)
         if response.status_code != 200:
             return None, response.status_code
         card_details = response.json()
