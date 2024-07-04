@@ -1,5 +1,5 @@
 import discord
-from discord import Intents
+from discord import Intents, interactions, ui
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
@@ -85,6 +85,7 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
 
     # Creates main embed with card details
     embed_main = discord.Embed(title=chosen_card.get('name'))
+
     embed_main.add_field(name="Set Name",
                          value=chosen_card.get('set_name'), inline=True)
     embed_main.add_field(name="Released At",
@@ -121,6 +122,8 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
 
     embed_main.add_field(name="Owners",
                          value=output, inline=True)
+    embed_main.set_footer(text=f"Requested by: {finish_interaction.user.name}",
+                          icon_url=finish_interaction.user.avatar.url)
 
     if embed2:
         await finish_interaction.followup.send(embeds=[embed_main, embed1, embed2], ephemeral=True)
