@@ -138,6 +138,7 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
 # Command: /get_card <name>
 @bot.tree.command(name='get_card', description='Get information about a Magic: The Gathering card')
 async def card(interaction: discord.Interaction, name: str):
+    await interaction.response.defer()
     guild = interaction.guild
     valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}{GET_CARD}", json= {'name': name,
@@ -156,6 +157,7 @@ async def card(interaction: discord.Interaction, name: str):
 # Command: /get_printing <name>
 @bot.tree.command(name='get_printing', description='Get a specific printing of a Magic: The Gathering card')
 async def card(card_interaction: discord.Interaction, name: str):
+    await card_interaction.response.defer()
     guild = card_interaction.guild
     valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}{GET_CARD}", json={'name': name,
@@ -189,6 +191,7 @@ async def card(card_interaction: discord.Interaction, name: str):
 
             # Callback function for the select menu
             async def select_callback(set_interaction: discord.Interaction):
+                await set_interaction.response.defer()
                 selected_value = set_interaction.data.get('values')[0]
                 if selected_value == "more":
                     await display_options(set_interaction, start_index + 24)
@@ -207,6 +210,7 @@ async def card(card_interaction: discord.Interaction, name: str):
 
                             # Callback function for the finish select menu
                             async def select_finish(finish_interaction):
+                                await finish_interaction.response.defer()
                                 selected_finish = None
                                 chosen_finish = finish_interaction.data.get('values')[0]
                                 for each_finish in selected_card.get('finishes'):
@@ -243,6 +247,7 @@ async def card(card_interaction: discord.Interaction, name: str):
 # Command: /create_user <password>
 @bot.tree.command(name='create_user', description='Create a new user')
 async def create_user(interaction: discord.Interaction, password: str):
+    await interaction.response.defer()
     user_id = interaction.user.id
     username = interaction.user.name
     user_password = password
@@ -261,6 +266,7 @@ async def create_user(interaction: discord.Interaction, password: str):
 # Command: /show_users
 @bot.tree.command(name='show_users', description='Show all users in discord server')
 async def show_users(interaction: discord.Interaction):
+    await interaction.response.defer()
     guild = interaction.guild
     valid_users = await get_valid_users(guild)
     response = requests.get(f"{API_URL}/api/get_users/", json={"valid_users": valid_users})
@@ -278,6 +284,7 @@ async def show_users(interaction: discord.Interaction):
 # Command: /delete_user
 @bot.tree.command(name='delete_user', description='Delete a user')
 async def delete_user(interaction: discord.Interaction, password: str):
+    await interaction.response.defer()
     data = {
         'username': interaction.user.name,
         'password':  password,
@@ -292,6 +299,7 @@ async def delete_user(interaction: discord.Interaction, password: str):
 # Command: /create_collection
 @bot.tree.command(name='create_collection', description='Create a new collection')
 async def create_collection(interaction: discord.Interaction, collection_name: str):
+    await interaction.response.defer()
     username = interaction.user.name
     data = {
         'username': username,
@@ -307,6 +315,7 @@ async def create_collection(interaction: discord.Interaction, collection_name: s
 # Command: /get_collection
 @bot.tree.command(name='get_collection', description='Get your collection')
 async def get_collection(interaction: discord.Interaction, collection_name: str):
+    await interaction.response.defer()
     username = interaction.user.name
     data = {
         'username': username,
@@ -331,6 +340,7 @@ async def get_collection(interaction: discord.Interaction, collection_name: str)
 # Command: /show_collections
 @bot.tree.command(name='show_collections', description='Show all collections for a user')
 async def show_collections(interaction: discord.Interaction):
+    await interaction.response.defer()
     username = interaction.user.name
     data = {
         'username': username
@@ -381,6 +391,7 @@ async def on_message(message):
                 if message.reference.message_id == prompt_message_ids[user_id]['message_id']:
                     for attachment in message.attachments:
                         if attachment.filename.endswith('.csv'):
+                            await message.channel.send(f"Uploading CSV file '{attachment.filename}'...")
                             async with aiohttp.ClientSession() as session:
                                 async with session.get(attachment.url) as response:
                                     if response.status == 200:
@@ -408,6 +419,7 @@ async def on_message(message):
 # Command: Delete a user's collection
 @bot.tree.command(name='delete_collection', description='Delete a collection')
 async def delete_collection(interaction: discord.Interaction, collection_name: str):
+    await interaction.response.defer()
     username = interaction.user.name
     data = {
         'username': username,
