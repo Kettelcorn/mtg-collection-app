@@ -1,8 +1,9 @@
 from django.urls import path
 from .views.user_views import CreateUserView, GetUsersView, ChangeUsernameView, DeleteUserView
-from .views.collection_views import CreateCollectionView, GetCollectionView, GetCollectionsView, UpdateCollectionView, DeleteCollectionView
+from .views.collection_views import (CreateCollectionView, GetCollectionView, GetCollectionsView,
+                                     UpdateCollectionView, DeleteCollectionView)
 from .views.card_views import GetCardView
-from .views.utility_views import PingView
+from .views.utility_views import PingView, OAuthCallbackView
 
 
 # URL patterns for the card_manager app
@@ -24,5 +25,6 @@ urlpatterns = [
     path('get_card/', GetCardView.as_view(), name='get-card'),
 
     # Utility views
-    path('ping/', PingView.as_view(), name='ping')
+    path('ping/', PingView.as_view(), name='ping'),
+    path('oauth_callback/', OAuthCallbackView.as_view(), name='oauth-callback')
 ]
