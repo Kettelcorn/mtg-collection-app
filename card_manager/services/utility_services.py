@@ -49,9 +49,17 @@ class UtilityServices:
 
                 login(request, user)
 
-                return {'message': 'User authenticated', 'user': user_info}
+                return {
+                    'message': 'User authenticated',
+                    'user': user,
+                    'user_info': user_info
+                        }
             else:
                 return {'error': 'Failed to obtain access token'}
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching user info: {e}")
             return {'error': 'An error occurred'}
+
+    def save_tokens(self, user, access_token, refresh_token):
+        user_repository = UserRepository()
+        user_repository.save_tokens(user, access_token, refresh_token)

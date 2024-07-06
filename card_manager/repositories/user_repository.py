@@ -58,3 +58,9 @@ class UserRepository:
         user = User.objects.get(username=username)
         user.delete()
         return user
+
+    def save_tokens(self, user, access_token, refresh_token):
+        user.access_token = access_token
+        user.refresh_token = refresh_token
+        user.save()
+        return user

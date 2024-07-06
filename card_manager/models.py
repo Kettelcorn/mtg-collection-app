@@ -8,6 +8,8 @@ class User(AbstractUser):
     discord_username = models.CharField(max_length=255, unique=True, default=None, null=True, blank=True)
     discord_discriminator = models.CharField(max_length=255, unique=False, default=None, null=True, blank=True)
     discord_email = models.EmailField(max_length=255, unique=True, default=None, null=True, blank=True)
+    access_token = models.CharField(max_length=512, null=True, blank=True)
+    refresh_token = models.CharField(max_length=512, null=True, blank=True)
 
     def __str__(self):
         return self.username

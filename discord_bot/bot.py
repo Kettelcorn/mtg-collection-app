@@ -19,6 +19,8 @@ load_dotenv()
 # Get the bot token from the environment
 BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
+OAUTH_URL = os.getenv('OAUTH_URL')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 prompt_message_ids = {}
 
@@ -55,6 +57,15 @@ async def keep_alive():
         requests.post(f"{API_URL}/api/ping/")
     except Exception as e:
         logger.error(f'Error sending ping: {e}')
+
+
+# Function to fetch the user's access and refresh tokens
+def fetch_tokens(username):
+    response = requests.get(f"{API_URL}/api/fetch_tokens/", params={'username': username, 'secret_key': SECRET_KEY})
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
 
 
 # Create an embed message with the card details
@@ -130,6 +141,13 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
     else:
         embed_main.set_image(url=chosen_card.get('image_uris').get('normal'))
         await finish_interaction.followup.send(embed=embed_main, ephemeral=True)
+
+
+# Command: /authenticate
+@bot.tree.command(name='authenticate', description='Authenticate with the bot')
+async def authenticate(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+    await interaction.followup.send(f"[Click here to authenticate]({OAUTH_URL})", ephemeral=True)
 
 
 # Command: /get_card <name>
@@ -295,11 +313,21 @@ async def delete_user(interaction: discord.Interaction, password: str):
 async def create_collection(interaction: discord.Interaction, collection_name: str):
     await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
+
+    # Fetch tokens
+    tokens = fetch_tokens(username)
+    if tokens is None:
+        await interaction.followup.send('You need to authenticate first. Use /authenticate command.', ephemeral=True)
+        return
+
+    headers = {
+        'Authorization': f'Bearer {tokens["access_token"]}'
+    }
     data = {
         'username': username,
         'collection_name': collection_name
     }
-    response = requests.post(f"{API_URL}/api/create_collection/", json=data)
+    response = requests.post(f"{API_URL}/api/create_collection/", json=data, headers=headers)
     if response.status_code == 201:
         await interaction.followup.send('Collection created successfully!')
     else:
