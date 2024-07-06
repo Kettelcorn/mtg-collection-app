@@ -14,7 +14,7 @@ logger = logging.getLogger('card_manager')
 # Create a collection for a user
 class CreateCollectionView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         collection_name = request.data.get('collection_name')

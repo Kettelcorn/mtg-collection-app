@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.views.generic.base import RedirectView
 from django.shortcuts import redirect
 import logging
@@ -67,3 +67,8 @@ class FetchTokensView(APIView):
         except Exception as e:
             logger.error(f"Error fetching tokens: {e}")
             return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Token refresh view for JWT
+class CustomTokenRefreshView(TokenRefreshView):
+    pass
