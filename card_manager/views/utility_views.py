@@ -1,14 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.views.generic.base import RedirectView
+from django.shortcuts import redirect
 import logging
 import os
 from dotenv import load_dotenv
+from ..services.utility_services import UtilityServices
 
 load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 API_URL = os.getenv('API_URL')
+OAUTH_URL = os.getenv('OAUTH_URL')
 
 logger = logging.getLogger('django')
 
@@ -22,28 +26,18 @@ class PingView(APIView):
 
 class OAuthCallbackView(APIView):
     def get(self, request, *args, **kwargs):
-        code = request.data.get('code')
-        data = {
-            'client_id': CLIENT_ID,
-            'client_secret': CLIENT_SECRET,
-            'code': code,
-            'grant_type': 'authorization_code',
-            'redirect_uri': f'{API_URL}/oauth_callback/'
-        }
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-        response = requests.post('https://discord.com/api/oauth2/token', data=data, headers=headers)
-        response_data = response.json()
-        access_token = response_data.get('access_token')
+        utility_services = UtilityServices()
+        try:
+            user_info = utility_services.oauth_callback(request)
+            return redirect('https://discord.com/channels/@me')
+        except Exception as e:
+            logger.error(f"Error fetching user info: {e}")
+            return Response({'error': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        if access_token:
-            # Use the access token to get user info
-            user_info_response = requests.get(
-                'https://discord.com/api/users/@me',
-                headers={'Authorization': f'Bearer {access_token}'}
-            )
-            user_info = user_info_response.json()
-            return Response(user_info, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Failed to obtain access token'}, status=status.HTTP_400_BAD_REQUEST)
+
+class StartOAuthView(RedirectView):
+    def get(self, request, *args, **kwargs):
+        oauth_url = (
+            OAUTH_URL
+        )
+        return oauth_url

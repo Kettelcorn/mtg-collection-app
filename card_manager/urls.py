@@ -3,7 +3,7 @@ from .views.user_views import CreateUserView, GetUsersView, ChangeUsernameView, 
 from .views.collection_views import (CreateCollectionView, GetCollectionView, GetCollectionsView,
                                      UpdateCollectionView, DeleteCollectionView)
 from .views.card_views import GetCardView
-from .views.utility_views import PingView, OAuthCallbackView
+from .views.utility_views import PingView, OAuthCallbackView, StartOAuthView
 
 
 # URL patterns for the card_manager app
@@ -26,5 +26,6 @@ urlpatterns = [
 
     # Utility views
     path('ping/', PingView.as_view(), name='ping'),
-    path('oauth_callback/', OAuthCallbackView.as_view(), name='oauth-callback')
+    path('oauth_callback/', OAuthCallbackView.as_view(), name='oauth-callback'),
+    path('start_oauth/', StartOAuthView.as_view(), name='start-oauth')
 ]
