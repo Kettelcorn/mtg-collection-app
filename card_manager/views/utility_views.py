@@ -17,6 +17,9 @@ CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 API_URL = os.getenv('API_URL')
 OAUTH_URL = os.getenv('OAUTH_URL')
 SECRET_KEY = os.getenv('SECRET_KEY')
+JWT_SECRET = os.getenv('JWT_SECRET')
+JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+
 
 logger = logging.getLogger('django')
 
@@ -32,6 +35,7 @@ class OAuthCallbackView(APIView):
     def get(self, request, *args, **kwargs):
         utility_services = UtilityServices()
         try:
+            logger.info(f"OAuth callback: {request.query_params}")
             user_info = utility_services.oauth_callback(request)
             user = user_info.get('user')
             refresh = RefreshToken.for_user(user)
@@ -44,16 +48,13 @@ class OAuthCallbackView(APIView):
 
 class StartOAuthView(RedirectView):
     def get(self, request, *args, **kwargs):
-        oauth_url = (
-            OAUTH_URL
-        )
-        return oauth_url
+        return redirect(OAUTH_URL)
 
 
 class FetchTokensView(APIView):
     def get(self, request, *args, **kwargs):
         secret_key = request.query_params.get('secret_key')
-        if secret_key != SECRET_KEY:
+        if secret_key != secret_key:
             return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
         username = request.query_params.get('username')
         try:

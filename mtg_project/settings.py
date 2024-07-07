@@ -44,16 +44,16 @@ REST_FRAMEWORK = {
 
 from datetime import timedelta
 
-ALGORITHM = os.getenv('ALGORITHM')
-SIGNING_KEY = os.getenv('SIGNING_KEY')
+JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+JWT_SECRET = os.getenv('JWT_SECRET')
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': ALGORITHM,
-    'SIGNING_KEY': SIGNING_KEY
+    'JWT_ALGORITHM': JWT_ALGORITHM,
+    'JWT_SECRET_KEY': JWT_SECRET,
 }
 
 MIDDLEWARE = [

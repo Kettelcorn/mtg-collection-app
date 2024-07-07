@@ -27,9 +27,11 @@ class UtilityServices:
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
+        logger.info(f"{data} {headers}")
         try:
             response = requests.post('https://discord.com/api/oauth2/token', data=data, headers=headers)
             response_data = response.json()
+            logger.info(f"Response data: {response_data}")
             access_token = response_data.get('access_token')
 
             if access_token:

@@ -23,13 +23,11 @@ BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
 OAUTH_URL = os.getenv('OAUTH_URL')
 SECRET_KEY = os.getenv('SECRET_KEY')
-JWT_SECRET = os.getenv('SIGNING_KEY')
-JWT_ALGORITHM = os.getenv('ALGORITHM')
+JWT_SECRET = os.getenv('JWT_SECRET')
+JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
 
 prompt_message_ids = {}
 
-if JWT_ALGORITHM not in ['HS256', 'RS256', 'ES256']:
-    raise ValueError(f"The specified algorithm {JWT_ALGORITHM} is not allowed. Allowed algorithms are: ['HS256', 'RS256', 'ES256']")
 
 user_tokens = {}
 
@@ -87,6 +85,7 @@ def fetch_tokens(username):
         logger.error(f"Failed to fetch tokens: {response.status_code} - {response.text}")
         return None
 
+
 def refresh_access_token(username):
     tokens = user_tokens.get(username)
     if tokens:
@@ -100,6 +99,7 @@ def refresh_access_token(username):
             return new_tokens['access']
     return None
 
+
 def get_access_token(username):
     tokens = user_tokens.get(username)
     if tokens:
@@ -110,7 +110,6 @@ def get_access_token(username):
         else:
             return tokens['access_token']
     return None
-
 
 
 # Create an embed message with the card details
