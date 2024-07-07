@@ -10,6 +10,21 @@ class UserRepository:
             user = User.objects.create_user(username=username, password=password, discord_id=discord_id)
             user.save()
             return user
+        else:
+            return None
+
+    def create_discord_user(self, discord_id, discord_username, discord_discriminator, discord_email):
+        user, created = User.objects.update_or_create(
+            discord_id=discord_id,
+            defaults={
+                'username': discord_username,
+                'discord_username': discord_username,
+                'discord_discriminator': discord_discriminator,
+                'email': discord_email,
+                'discord_email': discord_email
+            }
+        )
+        return user
 
     # Get user by discord id
     def get_user_by_username(self, username):
@@ -42,4 +57,10 @@ class UserRepository:
     def delete_user(self, username):
         user = User.objects.get(username=username)
         user.delete()
+        return user
+
+    def save_tokens(self, user, access_token, refresh_token):
+        user.access_token = access_token
+        user.refresh_token = refresh_token
+        user.save()
         return user

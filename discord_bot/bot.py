@@ -6,6 +6,8 @@ import os
 import aiohttp
 import requests
 import logging
+import jwt
+from datetime import datetime, timedelta
 
 
 logger = logging.getLogger(__name__)
@@ -19,8 +21,17 @@ load_dotenv()
 # Get the bot token from the environment
 BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 API_URL = os.getenv('API_URL')
+OAUTH_URL = os.getenv('OAUTH_URL')
+SECRET_KEY = os.getenv('SECRET_KEY')
+JWT_SECRET = os.getenv('SIGNING_KEY')
+JWT_ALGORITHM = os.getenv('ALGORITHM')
 
 prompt_message_ids = {}
+
+if JWT_ALGORITHM not in ['HS256', 'RS256', 'ES256']:
+    raise ValueError(f"The specified algorithm {JWT_ALGORITHM} is not allowed. Allowed algorithms are: ['HS256', 'RS256', 'ES256']")
+
+user_tokens = {}
 
 
 # Define intents
@@ -55,6 +66,51 @@ async def keep_alive():
         requests.post(f"{API_URL}/api/ping/")
     except Exception as e:
         logger.error(f'Error sending ping: {e}')
+
+
+def fetch_tokens(username):
+    response = requests.get(f"{API_URL}/api/fetch_tokens/", params={'username': username, 'secret_key': SECRET_KEY})
+    if response.status_code == 200:
+        tokens = response.json()
+        logger.info(f"Fetched tokens: {tokens}")
+        # Decode the access token to get the expiration time
+        access_token_decoded = jwt.decode(tokens['access_token'], JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        logger.info(f"Decoded token: {access_token_decoded}")
+        expiration_time = datetime.fromtimestamp(access_token_decoded['exp'])
+        user_tokens[username] = {
+            'access_token': tokens['access_token'],
+            'refresh_token': tokens['refresh_token'],
+            'expires_at': expiration_time
+        }
+        return tokens
+    else:
+        logger.error(f"Failed to fetch tokens: {response.status_code} - {response.text}")
+        return None
+
+def refresh_access_token(username):
+    tokens = user_tokens.get(username)
+    if tokens:
+        response = requests.post(f"{API_URL}/api/token/refresh/", data={'refresh': tokens['refresh_token']})
+        if response.status_code == 200:
+            new_tokens = response.json()
+            access_token_decoded = jwt.decode(new_tokens['access'], JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            expiration_time = datetime.fromtimestamp(access_token_decoded['exp'])
+            user_tokens[username]['access_token'] = new_tokens['access']
+            user_tokens[username]['expires_at'] = expiration_time
+            return new_tokens['access']
+    return None
+
+def get_access_token(username):
+    tokens = user_tokens.get(username)
+    if tokens:
+        if datetime.now() >= tokens['expires_at'] - timedelta(seconds=30):  # Refresh if token is close to expiry
+            new_access_token = refresh_access_token(username)
+            if new_access_token:
+                return new_access_token
+        else:
+            return tokens['access_token']
+    return None
+
 
 
 # Create an embed message with the card details
@@ -130,6 +186,13 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
     else:
         embed_main.set_image(url=chosen_card.get('image_uris').get('normal'))
         await finish_interaction.followup.send(embed=embed_main, ephemeral=True)
+
+
+# Command: /authenticate
+@bot.tree.command(name='authenticate', description='Authenticate with the bot')
+async def authenticate(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+    await interaction.followup.send(f"[Click here to authenticate]({OAUTH_URL})", ephemeral=True)
 
 
 # Command: /get_card <name>
@@ -295,11 +358,30 @@ async def delete_user(interaction: discord.Interaction, password: str):
 async def create_collection(interaction: discord.Interaction, collection_name: str):
     await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
+
+    # Fetch tokens for the user if not already fetched
+    if username not in user_tokens:
+        tokens = fetch_tokens(username)
+        if tokens is None:
+            await interaction.followup.send('You need to authenticate first. Use /authenticate command.',
+                                            ephemeral=True)
+            return
+
+    # Get a valid access token
+    access_token = get_access_token(username)
+    if access_token is None:
+        await interaction.followup.send('Authentication failed. Please re-authenticate using /authenticate command.',
+                                        ephemeral=True)
+        return
+
+    headers = {
+        'Authorization': f'Bearer {tokens["access_token"]}'
+    }
     data = {
         'username': username,
         'collection_name': collection_name
     }
-    response = requests.post(f"{API_URL}/api/create_collection/", json=data)
+    response = requests.post(f"{API_URL}/api/create_collection/", json=data, headers=headers)
     if response.status_code == 201:
         await interaction.followup.send('Collection created successfully!')
     else:

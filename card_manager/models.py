@@ -4,7 +4,12 @@ from django.contrib.auth.models import AbstractUser
 
 # User model for storing Discord user information
 class User(AbstractUser):
-    discord_id = models.CharField(max_length=255, unique=True, default=None)
+    discord_id = models.CharField(max_length=255, unique=True, null=True, blank=True, default=None)
+    discord_username = models.CharField(max_length=255, unique=True, default=None, null=True, blank=True)
+    discord_discriminator = models.CharField(max_length=255, unique=False, default=None, null=True, blank=True)
+    discord_email = models.EmailField(max_length=255, unique=True, default=None, null=True, blank=True)
+    access_token = models.CharField(max_length=512, null=True, blank=True)
+    refresh_token = models.CharField(max_length=512, null=True, blank=True)
 
     def __str__(self):
         return self.username

@@ -29,39 +29,32 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.discord',
     'rest_framework',
+    'rest_framework_simplejwt',
     'card_manager',
     'discord_bot',
     'channels',
 ]
 
-SITE_ID = 1
-
-AUTHENTICATION_BACKENDS = (
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
-
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-
-SOCIALACCOUNT_PROVIDERS = {
-    'discord': {
-        'SCOPE': [
-            'identify',
-            'email',
-            'connections'
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-    }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
-STATIC_URL = '/static/'
+from datetime import timedelta
+
+ALGORITHM = os.getenv('ALGORITHM')
+SIGNING_KEY = os.getenv('SIGNING_KEY')
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': ALGORITHM,
+    'SIGNING_KEY': SIGNING_KEY
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,7 +64,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'mtg_project.urls'

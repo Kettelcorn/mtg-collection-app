@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +13,8 @@ logger = logging.getLogger('card_manager')
 
 # Create a collection for a user
 class CreateCollectionView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         collection_name = request.data.get('collection_name')
