@@ -53,8 +53,8 @@ class StartOAuthView(RedirectView):
 
 class FetchTokensView(APIView):
     def get(self, request, *args, **kwargs):
-        secret_key = request.query_params.get('secret_key')
-        if secret_key != secret_key:
+        jwt_secret = request.query_params.get('jwt_secret')
+        if jwt_secret != JWT_SECRET:
             return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
         username = request.query_params.get('username')
         try:

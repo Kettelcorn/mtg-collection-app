@@ -67,7 +67,7 @@ async def keep_alive():
 
 
 def fetch_tokens(username):
-    response = requests.get(f"{API_URL}/api/fetch_tokens/", params={'username': username, 'secret_key': SECRET_KEY})
+    response = requests.get(f"{API_URL}/api/fetch_tokens/", params={'username': username, 'jwt_secret': JWT_SECRET},)
     if response.status_code == 200:
         tokens = response.json()
         logger.info(f"Fetched tokens: {tokens}")
