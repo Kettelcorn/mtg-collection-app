@@ -3,7 +3,7 @@ from .views.user_views import CreateUserView, GetUsersView, ChangeUsernameView, 
 from .views.collection_views import (CreateCollectionView, GetCollectionView, GetCollectionsView,
                                      UpdateCollectionView, DeleteCollectionView)
 from .views.card_views import GetCardView
-from .views.utility_views import PingView, OAuthCallbackView, StartOAuthView, FetchTokensView, CustomTokenRefreshView
+from .views.utility_views import PingView, OAuthCallbackView, StartOAuthView, TokenRefreshView, FetchTokensView
 
 
 # URL patterns for the card_manager app
@@ -29,5 +29,5 @@ urlpatterns = [
     path('oauth_callback/', OAuthCallbackView.as_view(), name='oauth-callback'),
     path('start_oauth/', StartOAuthView.as_view(), name='start-oauth'),
     path('fetch_tokens/', FetchTokensView.as_view(), name='fetch-tokens'),
-    path('token_refresh/', CustomTokenRefreshView.as_view(), name='token-refresh')
+    path('token_refresh/', TokenRefreshView.as_view(), name='token-refresh'),
 ]

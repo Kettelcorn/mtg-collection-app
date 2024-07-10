@@ -28,39 +28,19 @@ class UtilityServices:
             'Content-Type': 'application/x-www-form-urlencoded'
         }
         logger.info(f"{data} {headers}")
-        try:
-            response = requests.post('https://discord.com/api/oauth2/token', data=data, headers=headers)
-            response_data = response.json()
-            logger.info(f"Response data: {response_data}")
-            access_token = response_data.get('access_token')
-
-            if access_token:
-                user_info_response = requests.get(
-                    'https://discord.com/api/users/@me',
-                    headers={'Authorization': f'Bearer {access_token}'}
-                )
-                user_info = user_info_response.json()
-
-                discord_id = user_info.get('id')
-                username = user_info.get('username')
-                discriminator = user_info.get('discriminator')
-                email = user_info.get('email')
-
-                user_repository = UserRepository()
-                user = user_repository.create_discord_user(discord_id, username, discriminator, email)
-
-                login(request, user)
-
-                return {
-                    'message': 'User authenticated',
-                    'user': user,
-                    'user_info': user_info
-                        }
-            else:
-                return {'error': 'Failed to obtain access token'}
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching user info: {e}")
-            return {'error': 'An error occurred'}
+        user_repository = UserRepository()
+        response = requests.post('https://discord.com/api/oauth2/token', data=data, headers=headers)
+        if response.status_code == 200:
+            oauth_data = response.json()
+            user_response = requests.get(
+                'https://discord.com/api/users/@me',
+                headers={'Authorization': f"Bearer {oauth_data.get('access_token')}"}
+            )
+            user_data = user_response.json()
+            user = user_repository.get_user_by_username(user_data.get('username'))
+            return {'user': user}
+        else:
+            return None
 
     def save_tokens(self, user, access_token, refresh_token):
         user_repository = UserRepository()

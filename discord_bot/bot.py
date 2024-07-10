@@ -66,24 +66,34 @@ async def keep_alive():
         logger.error(f'Error sending ping: {e}')
 
 
+def save_tokens(username, tokens):
+    access_token_decoded = jwt.decode(tokens['access'], JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    expiration_time = datetime.fromtimestamp(access_token_decoded['exp'])
+    user_tokens[username] = {
+        'access_token': tokens['access'],
+        'refresh_token': tokens['refresh'],
+        'expiration_time': expiration_time
+    }
+
+
 def fetch_tokens(username):
-    response = requests.get(f"{API_URL}/api/fetch_tokens/", params={'username': username, 'jwt_secret': JWT_SECRET},)
+    response = requests.get(f"{API_URL}/api/fetch_tokens/", json={'username': username, 'jwt_secret': JWT_SECRET})
     if response.status_code == 200:
         tokens = response.json()
-        logger.info(f"Fetched tokens: {tokens}")
-        # Decode the access token to get the expiration time
-        access_token_decoded = jwt.decode(tokens['access_token'], JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        logger.info(f"Decoded token: {access_token_decoded}")
-        expiration_time = datetime.fromtimestamp(access_token_decoded['exp'])
-        user_tokens[username] = {
-            'access_token': tokens['access_token'],
-            'refresh_token': tokens['refresh_token'],
-            'expires_at': expiration_time
-        }
+        logger.info(f'Fetched tokens for user {username}, Tokens: {tokens}')
+        save_tokens(username, tokens)
         return tokens
+    return None
+
+
+async def handle_oauth_callback(ctx, code):
+    response = requests.get(f"{API_URL}/api/oauth_callback/?code={code}")
+    if response.status_code == 200:
+        tokens = response.json()
+        save_tokens(ctx.author.name, tokens)
+        await ctx.send(f'Authenticated successfully for user {ctx.author.name}')
     else:
-        logger.error(f"Failed to fetch tokens: {response.status_code} - {response.text}")
-        return None
+        await ctx.send('Authentication failed')
 
 
 def refresh_access_token(username):
@@ -92,10 +102,7 @@ def refresh_access_token(username):
         response = requests.post(f"{API_URL}/api/token/refresh/", data={'refresh': tokens['refresh_token']})
         if response.status_code == 200:
             new_tokens = response.json()
-            access_token_decoded = jwt.decode(new_tokens['access'], JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            expiration_time = datetime.fromtimestamp(access_token_decoded['exp'])
-            user_tokens[username]['access_token'] = new_tokens['access']
-            user_tokens[username]['expires_at'] = expiration_time
+            save_tokens(username, new_tokens)
             return new_tokens['access']
     return None
 
@@ -103,10 +110,8 @@ def refresh_access_token(username):
 def get_access_token(username):
     tokens = user_tokens.get(username)
     if tokens:
-        if datetime.now() >= tokens['expires_at'] - timedelta(seconds=30):  # Refresh if token is close to expiry
-            new_access_token = refresh_access_token(username)
-            if new_access_token:
-                return new_access_token
+        if datetime.now() >= tokens['expiration_time'] - timedelta(seconds=30):
+            return refresh_access_token(username)
         else:
             return tokens['access_token']
     return None
@@ -190,8 +195,7 @@ async def create_embed(finish_interaction, chosen_card, chosen_finish, users):
 # Command: /authenticate
 @bot.tree.command(name='authenticate', description='Authenticate with the bot')
 async def authenticate(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    await interaction.followup.send(f"[Click here to authenticate]({OAUTH_URL})", ephemeral=True)
+    await interaction.response.send_message(f"[Click here to authenticate]({OAUTH_URL})", ephemeral=True)
 
 
 # Command: /get_card <name>
@@ -374,7 +378,7 @@ async def create_collection(interaction: discord.Interaction, collection_name: s
         return
 
     headers = {
-        'Authorization': f'Bearer {tokens["access_token"]}'
+        'Authorization': f'Bearer {access_token}'
     }
     data = {
         'username': username,
