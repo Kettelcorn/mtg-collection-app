@@ -35,11 +35,11 @@ class OAuthCallbackView(APIView):
     def get(self, request, *args, **kwargs):
         utility_services = UtilityServices()
         try:
-            logger.info(f"OAuth callback: {request.query_params}")
             user_info = utility_services.oauth_callback(request)
             user = user_info.get('user')
             refresh = RefreshToken.for_user(user)
             utility_services.save_tokens(user, str(refresh.access_token), str(refresh))
+            logger.info(f"User authenticated and tokens assigned: {user.username}")
             return redirect(f"https://discord.com/channels/@me?access={refresh.access_token}&refresh={refresh}")
         except Exception as e:
             logger.error(f"Error fetching user info: {e}")
@@ -54,6 +54,8 @@ class StartOAuthView(RedirectView):
 class FetchTokensView(APIView):
     def get(self, request, *args, **kwargs):
         jwt_secret = request.data.get('jwt_secret')
+        logger.info(f"jwt_secret: {jwt_secret}")
+        logger.info(f"JWT_SECRET: {JWT_SECRET}")
         if jwt_secret != JWT_SECRET:
             return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
         username = request.data.get('username')

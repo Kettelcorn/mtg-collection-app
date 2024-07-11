@@ -13,6 +13,11 @@ class UserService:
         user = self.user_repository.create_user(username, password, discord_id)
         return user
 
+    def create_discord_user(self, discord_id, discord_username, discord_discriminator, discord_email):
+        user = self.user_repository.create_discord_user(discord_id, discord_username, discord_discriminator,
+                                                        discord_email)
+        return user
+
     # Authenticate a user
     def authenticate_user(self, username, password):
         return authenticate(username=username, password=password)

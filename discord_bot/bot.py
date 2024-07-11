@@ -8,6 +8,7 @@ import requests
 import logging
 import jwt
 from datetime import datetime, timedelta
+from discord_bot.auth.auth_services import AuthServices
 
 
 logger = logging.getLogger(__name__)
@@ -28,9 +29,7 @@ JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
 
 prompt_message_ids = {}
 
-
-user_tokens = {}
-
+auth_services = AuthServices()
 
 # Define intents
 intents = discord.Intents.default()
@@ -64,57 +63,6 @@ async def keep_alive():
         requests.post(f"{API_URL}/api/ping/")
     except Exception as e:
         logger.error(f'Error sending ping: {e}')
-
-
-def save_tokens(username, tokens):
-    access_token_decoded = jwt.decode(tokens['access'], JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    expiration_time = datetime.fromtimestamp(access_token_decoded['exp'])
-    user_tokens[username] = {
-        'access_token': tokens['access'],
-        'refresh_token': tokens['refresh'],
-        'expiration_time': expiration_time
-    }
-
-
-def fetch_tokens(username):
-    response = requests.get(f"{API_URL}/api/fetch_tokens/", json={'username': username, 'jwt_secret': JWT_SECRET})
-    if response.status_code == 200:
-        tokens = response.json()
-        logger.info(f'Fetched tokens for user {username}, Tokens: {tokens}')
-        save_tokens(username, tokens)
-        return tokens
-    return None
-
-
-async def handle_oauth_callback(ctx, code):
-    response = requests.get(f"{API_URL}/api/oauth_callback/?code={code}")
-    if response.status_code == 200:
-        tokens = response.json()
-        save_tokens(ctx.author.name, tokens)
-        await ctx.send(f'Authenticated successfully for user {ctx.author.name}')
-    else:
-        await ctx.send('Authentication failed')
-
-
-def refresh_access_token(username):
-    tokens = user_tokens.get(username)
-    if tokens:
-        response = requests.post(f"{API_URL}/api/token/refresh/", data={'refresh': tokens['refresh_token']})
-        if response.status_code == 200:
-            new_tokens = response.json()
-            save_tokens(username, new_tokens)
-            return new_tokens['access']
-    return None
-
-
-def get_access_token(username):
-    tokens = user_tokens.get(username)
-    if tokens:
-        if datetime.now() >= tokens['expiration_time'] - timedelta(seconds=30):
-            return refresh_access_token(username)
-        else:
-            return tokens['access_token']
-    return None
 
 
 # Create an embed message with the card details
@@ -362,19 +310,21 @@ async def create_collection(interaction: discord.Interaction, collection_name: s
     await interaction.response.defer(ephemeral=True)
     username = interaction.user.name
 
+    logger.info(f"Creating collection for {username}")
+
     # Fetch tokens for the user if not already fetched
-    if username not in user_tokens:
-        tokens = fetch_tokens(username)
+    if username not in auth_services.get_user_tokens():
+        tokens = auth_services.fetch_tokens(username)
         if tokens is None:
-            await interaction.followup.send('You need to authenticate first. Use /authenticate command.',
-                                            ephemeral=True)
+            logger.error(f"Failed to fetch tokens for {username}")
+            await interaction.followup.send('You need to authenticate first. Use /authenticate command.')
             return
 
     # Get a valid access token
-    access_token = get_access_token(username)
+    access_token = auth_services.get_access_token(username)
     if access_token is None:
-        await interaction.followup.send('Authentication failed. Please re-authenticate using /authenticate command.',
-                                        ephemeral=True)
+        logger.error(f"Failed to get access token for {username}")
+        await interaction.followup.send('Authentication failed. Please re-authenticate using /authenticate command.')
         return
 
     headers = {
@@ -386,8 +336,10 @@ async def create_collection(interaction: discord.Interaction, collection_name: s
     }
     response = requests.post(f"{API_URL}/api/create_collection/", json=data, headers=headers)
     if response.status_code == 201:
+        logger.info(f"Collection created for {username}: {collection_name}")
         await interaction.followup.send('Collection created successfully!')
     else:
+        logger.error(f"Failed to create collection for {username}: {collection_name}")
         await interaction.followup.send('Failed to create collection.')
 
 

@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 import logging
 from django.contrib.auth import login
 from ..repositories.user_repository import UserRepository
+from ..services.user_services import UserService
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('card_manager')
 
 load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
@@ -27,7 +28,6 @@ class UtilityServices:
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-        logger.info(f"{data} {headers}")
         user_repository = UserRepository()
         response = requests.post('https://discord.com/api/oauth2/token', data=data, headers=headers)
         if response.status_code == 200:
@@ -38,6 +38,10 @@ class UtilityServices:
             )
             user_data = user_response.json()
             user = user_repository.get_user_by_username(user_data.get('username'))
+            if not user:
+                user_service = UserService()
+                user = user_service.create_discord_user(user_data.get('id'), user_data.get('username'),
+                                                        user_data.get('discriminator'), user_data.get('email'))
             return {'user': user}
         else:
             return None
